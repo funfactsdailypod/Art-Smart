@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#FF6E73" />
+  <title>Art Smart — Podcast Art Trivia Studio</title>
+  <meta
+    name="description"
+    content="Play 250 educator-curated art trivia questions from the Art Smart & Who ARTed podcasts, featuring cued episode audio clips, +100 bonus depth challenges, and live classroom group games."
+  />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- Decorative Memphis geometric stage confetti overlay -->
+  <canvas id="confettiCanvas" class="confetti-canvas" aria-hidden="true"></canvas>
+
+  <!-- Subtle floating Memphis background shapes inspired by podcast cover art -->
+  <div class="memphis-backdrop" aria-hidden="true">
+    <svg class="memphis-svg memphis-svg-tl" viewBox="0 0 220 220">
+      <path d="M12 42 Q40 12 68 42 T124 42 T180 42" fill="none" stroke="#FF6E73" stroke-width="10" stroke-linecap="round" />
+      <circle cx="48" cy="110" r="18" fill="#FFE234" stroke="#0D1554" stroke-width="5" />
+      <polygon points="150,80 185,135 115,135" fill="#53E2C5" stroke="#0D1554" stroke-width="5" stroke-linejoin="round" />
+    </svg>
+    <svg class="memphis-svg memphis-svg-tr" viewBox="0 0 220 220">
+      <circle cx="150" cy="68" r="36" fill="none" stroke="#F59342" stroke-width="8" />
+      <circle cx="150" cy="68" r="20" fill="none" stroke="#0D1554" stroke-width="5" />
+      <path d="M24 148 Q58 118 92 148 T160 148" fill="none" stroke="#45C5EE" stroke-width="10" stroke-linecap="round" />
+    </svg>
+    <svg class="memphis-svg memphis-svg-bl" viewBox="0 0 220 220">
+      <rect x="30" y="96" width="44" height="44" rx="8" transform="rotate(-18 52 118)" fill="#6AC420" stroke="#0D1554" stroke-width="5" />
+      <circle cx="130" cy="150" r="14" fill="#6261E8" stroke="#0D1554" stroke-width="5" />
+    </svg>
+  </div>
+
+  <!-- Top Podcast Hero & Scoreboard Header -->
+  <header class="top-header">
+    <div class="header-wave-accent" aria-hidden="true"></div>
+    <div class="shell header-inner">
+      <div class="brand-cluster">
+        <div class="brand-covers" title="Art Smart & Who ARTed Podcasts">
+          <img src="images/art-smart-cover.png" alt="Art Smart podcast cover" class="brand-cover-img brand-cover-front" />
+          <img src="images/who-arted-cover.png" alt="Who ARTed podcast cover" class="brand-cover-img brand-cover-back" />
+        </div>
+        <div class="brand-copy">
+          <div class="brand-title-row">
+            <img src="images/art-smart-badge.svg" alt="" class="brand-crest" />
+            <h1>Art Smart</h1>
+            <span class="brand-pill">250-Episode Studio</span>
+          </div>
+          <p class="brand-sub">Trivia &amp; Cued Listening from <strong>Art Smart</strong> &amp; <strong>Who ARTed</strong> by Kyle Wood</p>
+          <div class="podcast-links-row">
+            <a class="podcast-chip podcast-chip-spotify" href="https://open.spotify.com/show/1S9SbkmRXtChPHxmlKfeZb" target="_blank" rel="noopener">
+              <span class="dot dot-pink"></span> Art Smart · Spotify
+            </a>
+            <a class="podcast-chip podcast-chip-spotify" href="https://open.spotify.com/show/1Sv71dnatL79dprwfX4Ypa" target="_blank" rel="noopener">
+              <span class="dot dot-blue"></span> Who ARTed · Spotify
+            </a>
+            <a class="podcast-chip" href="https://podcasts.apple.com/us/podcast/art-smart/id1603422346" target="_blank" rel="noopener">
+              Apple Podcasts
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-hud">
+        <div class="hud-stat-pill hud-score" title="Total Solo Trivia Points (+100 per question, +100 per bonus)">
+          <span class="hud-label">Score</span>
+          <strong id="hudScore">0</strong>
+        </div>
+        <div class="hud-stat-pill hud-streak" title="Current Solo Correct Streak">
+          <span class="hud-label">Streak</span>
+          <strong id="hudStreak">0 🔥</strong>
+        </div>
+        <div class="hud-actions">
+          <button id="soundToggleBtn" class="icon-btn" type="button" title="Toggle sound effects" aria-pressed="true">🔊</button>
+          <button id="openBadgesBtn" class="icon-btn" type="button" title="Art Badges & Progress">🏅</button>
+          <button id="openShareModalBtn" class="icon-btn" type="button" title="Download Scorecard">🖼️</button>
+          <button id="openSettingsBtn" class="icon-btn" type="button" title="Settings & Host Cue Studio">⚙️</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Primary 4-Mode Navigation Tabs -->
+    <nav class="shell main-nav" aria-label="Primary sections">
+      <button class="nav-tab is-active" data-tab="solo" id="navTabSolo" type="button">
+        <span class="nav-tab-icon">🎨</span>
+        <span>Solo Quiz</span>
+      </button>
+      <button class="nav-tab" data-tab="episodes" id="navTabEpisodes" type="button">
+        <span class="nav-tab-icon">📚</span>
+        <span>Episode Library</span>
+        <span class="nav-badge" id="navLibraryCount">250</span>
+      </button>
+      <button class="nav-tab" data-tab="playlists" id="navTabPlaylists" type="button">
+        <span class="nav-tab-icon">🗂️</span>
+        <span>Unit Playlists</span>
+      </button>
+      <button class="nav-tab nav-tab-group" data-tab="group" id="navTabGroup" type="button">
+        <span class="nav-tab-icon">🏟️</span>
+        <span>Classroom Arena</span>
+        <span class="nav-badge nav-badge-live hidden" id="navGroupLiveBadge">LIVE</span>
+      </button>
+    </nav>
+  </header>
+
+  <main class="shell main-stage">
+    <!-- Toast Notification -->
+    <div id="appToast" class="app-toast hidden" role="status" aria-live="polite"></div>
+
+    <!-- ======================= TAB 1: SOLO QUIZ ======================= -->
+    <section id="tab-solo" class="tab-panel is-active" aria-labelledby="navTabSolo">
+      <!-- Educator Mastery & Filter Toolbar -->
+      <div class="memphis-card solo-toolbar-card">
+        <div class="solo-toolbar-top">
+          <div>
+            <span class="eyebrow-tag">Educator Deck &amp; Instant Cued Player</span>
+            <h2 class="section-heading">Pick a Focus or Jump Straight In</h2>
+          </div>
+          <div class="solo-show-filter" role="group" aria-label="Filter by podcast show">
+            <button class="filter-pill is-active" data-solo-show="All" type="button">Both Shows</button>
+            <button class="filter-pill" data-solo-show="Art Smart" type="button">Art Smart</button>
+            <button class="filter-pill" data-solo-show="Who ARTed" type="button">Who ARTed</button>
+            <button class="filter-pill" id="soloShortToggleBtn" type="button" aria-pressed="false" title="Filter episodes 7 minutes or shorter">⚡ ≤ 7m Short</button>
+            <button class="filter-pill" id="soloBonusOnlyBtn" type="button" aria-pressed="false" title="Show only questions with a +100 Bonus opportunity">✨ Bonus Depth Only</button>
+          </div>
+        </div>
+
+        <div id="soloCategoryBar" class="category-chip-row" role="group" aria-label="Filter by art education category"></div>
+
+        <!-- Compact Educator Mastery Progress Meter -->
+        <div class="mastery-strip">
+          <div class="mastery-meta">
+            <span><strong>Studio Mastery:</strong> <span id="soloMasterySummary">0 / 250 episodes explored</span></span>
+            <span class="mastery-hint">+100 pts per right answer • Click any choice for instant reveal &amp; cued audio!</span>
+          </div>
+          <div class="mastery-bar-track" aria-hidden="true">
+            <div id="soloMasteryBar" class="mastery-bar-fill" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Featured / Active Solo Question Card -->
+      <article id="soloQuestionCard" class="memphis-card solo-question-card">
+        <div class="solo-card-meta">
+          <div class="solo-badges-left">
+            <span id="soloShowBadge" class="show-badge">Art Smart</span>
+            <span id="soloCategoryBadge" class="cat-badge">Elements of Art</span>
+            <span id="soloDurationBadge" class="dur-badge">⏱ 7:45</span>
+            <span id="soloBonusFlagBadge" class="bonus-flag-badge hidden">⚡ +100 Bonus Question Inside</span>
+          </div>
+          <div class="solo-nav-controls">
+            <span id="soloDeckCounter" class="deck-counter">Question 1 of 250</span>
+            <button id="soloPrevBtn" class="btn btn-sm btn-outline" type="button" title="Previous question">← Prev</button>
+            <button id="soloShuffleBtn" class="btn btn-sm btn-yellow" type="button" title="Deal an unanswered random question">🎲 Random</button>
+            <button id="soloNextBtn" class="btn btn-sm btn-outline" type="button" title="Next question">Next →</button>
+          </div>
+        </div>
+
+        <div class="solo-episode-banner">
+          <img id="soloArtwork" src="images/art-smart-cover.png" alt="Episode cover art" class="solo-art-thumb" />
+          <div class="solo-episode-info">
+            <div class="solo-episode-eyebrow">
+              <span>Featured Episode</span>
+              <span id="soloPubDate" class="meta-muted"></span>
+              <span id="soloStatusPill" class="status-pill hidden">Answered</span>
+            </div>
+            <h3 id="soloEpisodeTitle" class="solo-episode-title">Loading Art Smart episodes...</h3>
+          </div>
+          <div class="solo-episode-quick-actions">
+            <button id="soloFavBtn" class="btn btn-sm btn-outline" type="button" title="Save episode to Favorites">☆ Save</button>
+            <button id="soloAddPlBtn" class="btn btn-sm btn-outline" type="button" title="Add to Unit Playlist">+ Playlist</button>
+          </div>
+        </div>
+
+        <h3 id="soloQuestionPrompt" class="solo-question-prompt">Loading question...</h3>
+
+        <div id="soloOptionsGrid" class="options-grid" role="group" aria-label="Answer choices"></div>
+
+        <!-- Immediate Reveal Panel (Appears automatically right after user clicks a choice!) -->
+        <div id="soloRevealPanel" class="reveal-panel hidden">
+          <div id="soloOutcomeBanner" class="outcome-banner">
+            <div class="outcome-title-wrap">
+              <span id="soloOutcomeIcon" class="outcome-icon">🎉</span>
+              <div>
+                <h4 id="soloOutcomeHeading">+100 Points! Spot On!</h4>
+                <p id="soloOutcomeSubtext" class="outcome-subtext"></p>
+              </div>
+            </div>
+            <button id="soloNextAfterRevealBtn" class="btn btn-yellow" type="button">Next Art Question →</button>
+          </div>
+
+          <div class="reveal-explanation-box">
+            <strong>Behind the Brush:</strong>
+            <p id="soloExplanationText"></p>
+          </div>
+
+          <!-- Embedded Episode Player Cued Directly to Explanation Spot -->
+          <div id="soloEmbeddedPlayer" class="embedded-player-card">
+            <div class="embedded-player-header">
+              <div>
+                <span class="cue-eyebrow">🎧 Embedded Podcast Player — Cued to Episode Insight</span>
+                <h5 id="embeddedEpisodeHeading" class="embedded-player-title">Listen to Kyle Explain</h5>
+              </div>
+              <span id="embeddedCueBadge" class="cue-time-badge">Cued @ 1:30</span>
+            </div>
+
+            <div class="embedded-player-controls">
+              <button id="embeddedPlayCueBtn" class="btn btn-mint" type="button">▶ Play from Cue</button>
+              <button id="embeddedBack15Btn" class="btn btn-sm btn-outline" type="button">-15s</button>
+              <button id="embeddedFwd15Btn" class="btn btn-sm btn-outline" type="button">+15s</button>
+              <div class="embedded-progress-wrap">
+                <input id="embeddedSeekRange" class="embedded-seek" type="range" min="0" max="1000" value="0" aria-label="Seek episode audio" />
+                <div class="embedded-times">
+                  <span id="embeddedCurTime">0:00</span>
+                  <span id="embeddedDurTime">0:00</span>
+                </div>
+              </div>
+              <a id="embeddedSpotifyLink" class="btn btn-sm btn-outline" href="#" target="_blank" rel="noopener">Spotify ↗</a>
+              <a id="embeddedAppleLink" class="btn btn-sm btn-outline" href="#" target="_blank" rel="noopener">Apple ↗</a>
+            </div>
+            <p id="embeddedCueNote" class="embedded-cue-note"></p>
+          </div>
+
+          <!-- Occasional +100 Bonus Depth Opportunity Card (5–10% / 20 episodes) -->
+          <div id="soloBonusPanel" class="bonus-panel hidden">
+            <div class="bonus-panel-header">
+              <span class="bonus-lightning">⚡ BONUS DEPTH OPPORTUNITY · +100 EXTRA PTS</span>
+              <span id="soloBonusStatusChip" class="bonus-status-chip">Deeper Connection</span>
+            </div>
+            <h4 id="soloBonusPrompt" class="bonus-prompt"></h4>
+            <div id="soloBonusOptionsGrid" class="bonus-options-grid"></div>
+            <div id="soloBonusRevealBox" class="bonus-reveal-box hidden">
+              <strong id="soloBonusOutcomeTitle"></strong>
+              <p id="soloBonusExplanation"></p>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- ======================= TAB 2: EPISODE LIBRARY ======================= -->
+    <section id="tab-episodes" class="tab-panel" aria-labelledby="navTabEpisodes">
+      <div class="memphis-card library-controls-card">
+        <div class="library-head-row">
+          <div>
+            <span class="eyebrow-tag">Curated 250-Episode Podcast Bank</span>
+            <h2 class="section-heading">Search &amp; Filter Art Topics</h2>
+          </div>
+          <span id="libraryResultCount" class="result-pill">Showing 250 episodes</span>
+        </div>
+
+        <div class="library-filter-grid">
+          <div class="field-group">
+            <label for="librarySearchInput">Search artist, concept, or episode</label>
+            <input id="librarySearchInput" type="search" class="text-input" placeholder="e.g. perspective, Basquiat, glazing, Keith Haring..." />
+          </div>
+          <div class="field-group">
+            <label for="libraryCategorySelect">Category</label>
+            <select id="libraryCategorySelect" class="select-input"></select>
+          </div>
+          <div class="field-group">
+            <label for="libraryShowSelect">Podcast Show</label>
+            <select id="libraryShowSelect" class="select-input">
+              <option value="All">Both Shows</option>
+              <option value="Art Smart">Art Smart</option>
+              <option value="Who ARTed">Who ARTed</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="libraryLengthSelect">Episode Length</label>
+            <select id="libraryLengthSelect" class="select-input">
+              <option value="all">Any Length</option>
+              <option value="short">Super Short (≤ 7 min)</option>
+              <option value="medium">Standard Short (≤ 12 min)</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="libraryStatusSelect">Progress</label>
+            <select id="libraryStatusSelect" class="select-input">
+              <option value="all">All Questions</option>
+              <option value="unanswered">Unanswered Only</option>
+              <option value="favorites">Saved Favorites</option>
+              <option value="bonus">Has +100 Bonus Only</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="librarySortSelect">Sort By</label>
+            <select id="librarySortSelect" class="select-input">
+              <option value="shortest">Shortest Episode First</option>
+              <option value="newest">Newest Release First</option>
+              <option value="oldest">Oldest Release First</option>
+              <option value="title">Title (A → Z)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div id="libraryCardsGrid" class="library-grid"></div>
+      <div id="libraryPagination" class="pagination-row"></div>
+    </section>
+
+    <!-- ======================= TAB 3: UNIT PLAYLISTS ======================= -->
+    <section id="tab-playlists" class="tab-panel" aria-labelledby="navTabPlaylists">
+      <div class="memphis-card">
+        <span class="eyebrow-tag">Classroom Unit Packs &amp; Custom Decks</span>
+        <h2 class="section-heading">Starter Lesson Packs</h2>
+        <p class="section-sub">Launch a ready-made deck directly in Solo Mode or spin it into a live Classroom Arena round.</p>
+        <div id="starterPacksGrid" class="starter-packs-grid"></div>
+      </div>
+
+      <div class="memphis-card">
+        <div class="playlist-create-header">
+          <div>
+            <span class="eyebrow-tag">Build &amp; Share Your Own</span>
+            <h2 class="section-heading">My Classroom Playlists</h2>
+          </div>
+          <form id="createPlaylistForm" class="playlist-create-form">
+            <input id="newPlaylistNameInput" type="text" class="text-input" maxlength="48" placeholder="New playlist (e.g. 5th Grade Sculpture)" required />
+            <button type="submit" class="btn btn-coral">+ Create Playlist</button>
+          </form>
+        </div>
+
+        <div id="customPlaylistsContainer" class="custom-playlists-list"></div>
+      </div>
+    </section>
+
+    <!-- ======================= TAB 4: CLASSROOM ARENA (GROUP MODE) ======================= -->
+    <section id="tab-group" class="tab-panel" aria-labelledby="navTabGroup">
+      <!-- Setup View: Host vs Join Split Cards -->
+      <div id="groupSetupView" class="group-setup-grid">
+        <!-- HOST A CLASSROOM GAME CARD -->
+        <article class="memphis-card group-host-card">
+          <div class="card-ribbon ribbon-violet">TEACHER / GAME LEADER</div>
+          <h2 class="section-heading">Host a Classroom Game</h2>
+          <p class="section-sub">
+            Generate a reusable room code, project the questions on screen, and award
+            <strong>100 → 90 → 80 → 70 → 60 → 50</strong> speed points!
+          </p>
+
+          <form id="hostCreateForm" class="host-form">
+            <div class="form-row-2">
+              <div class="field-group">
+                <label for="hostNameInput">Leader Name</label>
+                <input id="hostNameInput" type="text" class="text-input" maxlength="32" value="Teacher" placeholder="Ms. Rivera" />
+              </div>
+              <div class="field-group">
+                <label for="hostTitleInput">Class / Game Title</label>
+                <input id="hostTitleInput" type="text" class="text-input" maxlength="64" placeholder="Art Smart Classroom Challenge" />
+              </div>
+            </div>
+
+            <!-- Question Source Mode -->
+            <div class="field-group">
+              <label>Question Selection Mode</label>
+              <div id="hostQuestionModeGroup" class="segmented-pills" role="radiogroup">
+                <button type="button" class="seg-btn is-active" data-qmode="random">🎲 Random Assortment</button>
+                <button type="button" class="seg-btn" data-qmode="theme">🎨 Choose a Theme</button>
+                <button type="button" class="seg-btn" data-qmode="individual">☑️ Select Individual Questions</button>
+              </div>
+            </div>
+
+            <!-- Theme Sub-Options -->
+            <div id="hostThemeOptionsBox" class="sub-config-box hidden">
+              <div class="form-row-2">
+                <div class="field-group">
+                  <label for="hostThemeCategory">Art Category Theme</label>
+                  <select id="hostThemeCategory" class="select-input"></select>
+                </div>
+                <div class="field-group">
+                  <label for="hostThemeShow">Podcast Focus</label>
+                  <select id="hostThemeShow" class="select-input">
+                    <option value="All">Both Art Smart &amp; Who ARTed</option>
+                    <option value="Art Smart">Art Smart Only</option>
+                    <option value="Who ARTed">Who ARTed Only</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Individual Question Picker Box -->
+            <div id="hostIndividualPickerBox" class="sub-config-box hidden">
+              <div class="picker-toolbar">
+                <input id="hostPickerSearch" type="search" class="text-input" placeholder="Search questions to include..." />
+                <select id="hostPickerCatFilter" class="select-input"></select>
+                <button id="hostPickerClearBtn" type="button" class="btn btn-sm btn-outline">Clear (<span id="hostPickedCount">0</span>)</button>
+              </div>
+              <div id="hostPickerList" class="individual-picker-list"></div>
+            </div>
+
+            <!-- Game Length -->
+            <div id="hostQuestionCountWrap" class="field-group">
+              <label>Number of Questions</label>
+              <div id="hostLengthPills" class="segmented-pills" role="radiogroup">
+                <button type="button" class="seg-btn is-active" data-qcount="10">10 Questions</button>
+                <button type="button" class="seg-btn" data-qcount="20">20 Questions</button>
+                <button type="button" class="seg-btn" data-qcount="30">30 Questions</button>
+                <button type="button" class="seg-btn seg-btn-endless" data-qcount="endless">♾️ Let’s see how far we can go!</button>
+              </div>
+              <p id="hostEndlessHint" class="field-hint hidden">Endless Mode keeps dealing fresh random questions until you click End Game!</p>
+            </div>
+
+            <!-- Room Code + Expiry Duration -->
+            <div class="form-row-2">
+              <div class="field-group">
+                <label for="hostRoomCodeInput">Game Code (Random 6-digit or Custom)</label>
+                <div class="code-input-wrap">
+                  <input id="hostRoomCodeInput" type="text" class="text-input code-input" maxlength="24" autocomplete="off" />
+                  <button id="hostRollCodeBtn" type="button" class="btn btn-sm btn-yellow" title="Generate new random 6-digit code">🎲 6-Digit</button>
+                </div>
+              </div>
+              <div class="field-group">
+                <label>Code Valid Duration</label>
+                <div id="hostExpiryPills" class="segmented-pills" role="radiogroup">
+                  <button type="button" class="seg-btn" data-expiry="1h">1 Hour</button>
+                  <button type="button" class="seg-btn is-active" data-expiry="1d">1 Day</button>
+                  <button type="button" class="seg-btn" data-expiry="1w">1 Week</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Timer Speed -->
+            <div class="field-group">
+              <label for="hostTimerSelect">Question Countdown</label>
+              <select id="hostTimerSelect" class="select-input">
+                <option value="20">20 seconds (Quick Recall)</option>
+                <option value="25" selected>25 seconds (Standard Classroom)</option>
+                <option value="35">35 seconds (Read-Aloud Friendly)</option>
+                <option value="0">Untimed (Teacher Reveals Manually)</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn btn-coral btn-lg full-width">🚀 Launch Classroom Lobby</button>
+          </form>
+
+          <!-- Reusable Teacher Saved Rooms -->
+          <div id="savedTeacherRoomsSection" class="saved-rooms-box hidden">
+            <h4>Reusable Classroom Codes</h4>
+            <div id="savedTeacherRoomsList" class="saved-rooms-list"></div>
+          </div>
+        </article>
+
+        <!-- JOIN A CLASSROOM GAME CARD -->
+        <article class="memphis-card group-join-card">
+          <div class="card-ribbon ribbon-teal">STUDENT / PLAYER</div>
+          <h2 class="section-heading">Join a Classroom Game</h2>
+          <p class="section-sub">Enter the 6-digit or custom code from your teacher’s screen, type your name, and pick an artist avatar.</p>
+
+          <form id="playerJoinForm" class="join-form">
+            <div class="field-group">
+              <label for="joinCodeInput">Classroom Code</label>
+              <input id="joinCodeInput" type="text" class="text-input code-input-big" maxlength="24" placeholder="123456" autocomplete="off" required />
+            </div>
+            <div class="field-group">
+              <label for="joinNameInput">Your Artist Name</label>
+              <input id="joinNameInput" type="text" class="text-input" maxlength="24" placeholder="Enter your name" required />
+            </div>
+
+            <div class="field-group">
+              <label>Pick Your Avatar</label>
+              <div id="joinAvatarGrid" class="avatar-picker-grid" role="radiogroup" aria-label="Select player avatar"></div>
+            </div>
+
+            <button type="submit" class="btn btn-mint btn-lg full-width">🎨 Join Game Arena</button>
+          </form>
+
+          <div id="arenaConnectionBanner" class="connection-mode-note">
+            Detecting network mode...
+          </div>
+        </article>
+      </div>
+
+      <!-- ACTIVE CLASSROOM ROOM VIEW (Lobby / Question / Reveal / Podium) -->
+      <div id="groupRoomView" class="group-room-view hidden">
+        <!-- Room Header Bar -->
+        <div class="memphis-card room-top-bar">
+          <div class="room-code-display">
+            <span class="eyebrow-tag" id="roomTitleTag">Classroom Game</span>
+            <div class="room-code-big-row">
+              <span>CODE:</span>
+              <strong id="activeRoomCode">000000</strong>
+              <span id="activeRoomExpiryBadge" class="expiry-badge">1 Day</span>
+            </div>
+          </div>
+          <div class="room-top-actions">
+            <button id="copyRoomLinkBtn" class="btn btn-sm btn-outline" type="button">🔗 Copy Join Link</button>
+            <button id="leaveRoomBtn" class="btn btn-sm btn-outline" type="button">← Leave</button>
+          </div>
+        </div>
+
+        <!-- Stage 1: LOBBY -->
+        <div id="roomStageLobby" class="room-stage memphis-card hidden">
+          <div class="lobby-grid">
+            <div class="lobby-qr-box">
+              <div id="roomQrContainer" class="qr-frame"></div>
+              <p class="qr-caption">Scan or visit on class Wi-Fi with code <strong id="lobbyInlineCode">000000</strong></p>
+            </div>
+            <div class="lobby-roster-box">
+              <div class="roster-header">
+                <h3>Joined Artists (<span id="lobbyPlayerCount">0</span>)</h3>
+                <span id="lobbyDeckSummary" class="deck-summary-chip">10 Questions</span>
+              </div>
+              <div id="lobbyPlayersWall" class="players-avatar-wall">
+                <p class="empty-muted">Waiting for players to join with their name &amp; avatar...</p>
+              </div>
+              <div id="hostLobbyControls" class="host-controls-bar hidden">
+                <button id="hostStartGameBtn" class="btn btn-coral btn-lg" type="button">🎬 Start Classroom Game</button>
+              </div>
+              <p id="playerLobbyWaitMsg" class="waiting-banner hidden">You’re in! Watch the teacher’s screen — the game will begin shortly.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 2: LIVE QUESTION -->
+        <div id="roomStageQuestion" class="room-stage memphis-card hidden">
+          <div class="live-q-topbar">
+            <div class="live-q-meta">
+              <span id="liveQProgress" class="live-progress-pill">Question 1 of 10</span>
+              <span id="liveQShowBadge" class="show-badge">Who ARTed</span>
+              <span id="liveQCatBadge" class="cat-badge">Elements of Art</span>
+            </div>
+            <div class="live-lock-stats">
+              <span id="liveLockedCounter" class="locked-pill">0 / 0 Locked In</span>
+              <span id="liveTimerText" class="timer-pill">25s</span>
+            </div>
+          </div>
+
+          <div class="timer-track" aria-hidden="true">
+            <div id="liveTimerBar" class="timer-fill" style="width: 100%"></div>
+          </div>
+
+          <div class="live-episode-sub">
+            From: <strong id="liveEpisodeTitle">Episode Title</strong>
+          </div>
+          <h2 id="liveQuestionPrompt" class="live-question-prompt">Loading question...</h2>
+
+          <div id="liveOptionsGrid" class="live-options-grid"></div>
+
+          <div id="playerLockedStatus" class="player-locked-banner hidden">
+            ✅ Choice locked in! Waiting for classmates &amp; answer reveal...
+          </div>
+
+          <div id="hostLiveControls" class="host-controls-bar hidden">
+            <button id="hostRevealBtn" class="btn btn-yellow" type="button">👁️ Reveal Answer &amp; Top 3</button>
+            <button id="hostEndEarlyBtn" class="btn btn-outline" type="button">🏁 End Game Now</button>
+          </div>
+        </div>
+
+        <!-- Stage 3: ANSWER REVEAL + "SMARTEST ARTISTS" TOP 3 LEADERBOARD -->
+        <div id="roomStageReveal" class="room-stage hidden">
+          <div class="memphis-card reveal-stage-card">
+            <div class="reveal-header-row">
+              <div>
+                <span class="eyebrow-tag">Round Results</span>
+                <h2 id="groupRevealCorrectText" class="section-heading">Correct Answer</h2>
+              </div>
+              <div id="playerRoundAwardPill" class="round-award-pill hidden">+100 pts!</div>
+            </div>
+
+            <p id="groupRevealExplanation" class="reveal-exp-copy"></p>
+
+            <!-- Classroom Cued Podcast Audio Control -->
+            <div class="classroom-cue-bar">
+              <button id="groupPlayCueBtn" class="btn btn-mint" type="button">🎧 Play Episode Audio Cued to Insight</button>
+              <span id="groupCueTimestampLabel" class="cue-time-badge">Cue 1:30</span>
+            </div>
+
+            <!-- TOP 3 "SMARTEST ARTISTS" LEADERBOARD -->
+            <div class="smartest-artists-box">
+              <div class="smartest-header">
+                <h3>🏆 Smartest Artists — Top 3</h3>
+                <button id="toggleFullStandingsBtn" class="btn btn-sm btn-outline" type="button">View All Players</button>
+              </div>
+              <div id="smartestTop3Podium" class="top3-podium-grid"></div>
+              <div id="fullStandingsDrawer" class="full-standings-list hidden"></div>
+            </div>
+
+            <div id="hostRevealControls" class="host-controls-bar hidden">
+              <button id="hostNextQuestionBtn" class="btn btn-coral btn-lg" type="button">Next Question →</button>
+              <button id="hostFinishFromRevealBtn" class="btn btn-outline" type="button">🏁 End Game &amp; Show Final Podium</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 4: FINAL PODIUM & REUSABLE CLASSROOM RESET -->
+        <div id="roomStageEnded" class="room-stage memphis-card hidden">
+          <div class="final-podium-banner">
+            <span class="eyebrow-tag">Game Complete!</span>
+            <h2 class="final-heading">🏆 Smartest Artists of the Class 🏆</h2>
+            <p id="finalGameSummary" class="section-sub"></p>
+          </div>
+
+          <div id="finalTop3Grid" class="top3-podium-grid final-podium-large"></div>
+          <div id="finalFullTable" class="final-standings-table"></div>
+
+          <div id="hostEndedControls" class="host-ended-actions hidden">
+            <div class="reset-options-card">
+              <div>
+                <h4>Teaching Another Class Period Today or This Week?</h4>
+                <p>Reset clears scores &amp; players while keeping your exact code (<strong id="resetSameCodeText">000000</strong>) and expiration active.</p>
+                <label class="checkbox-label">
+                  <input id="resetDealFreshCheck" type="checkbox" checked />
+                  <span>Deal a fresh set of random questions for the next class (uncheck to reuse exact same questions)</span>
+                </label>
+              </div>
+              <button id="hostResetGameBtn" class="btn btn-coral btn-lg" type="button">🔄 Reset Game for Next Class</button>
+            </div>
+          </div>
+
+          <div class="final-export-row">
+            <button id="exportCsvBtn" class="btn btn-mint" type="button">📥 Export Scores (.CSV)</button>
+            <button id="downloadGroupCardBtn" class="btn btn-yellow" type="button">🖼️ Save Podium Scorecard (.PNG)</button>
+            <button id="backToArenaLobbyBtn" class="btn btn-outline" type="button">Back to Classroom Arena</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Floating Scroll Quick-Jump Control -->
+  <button id="scrollTopBtn" class="scroll-top-btn hidden" type="button" title="Back to top" aria-label="Scroll to top">↑</button>
+
+  <!-- Sticky Persistent Audio Player Bar + Expandable Drawer -->
+  <div id="audioPlayerBar" class="audio-bar hidden" role="region" aria-label="Podcast audio player">
+    <div class="shell audio-bar-inner">
+      <div class="audio-meta-left" id="playerExpandBtn" role="button" tabindex="0" title="Expand podcast player">
+        <img id="miniPlayerArt" src="images/art-smart-cover.png" alt="" class="mini-art" />
+        <div class="mini-text">
+          <span id="miniPlayerShow" class="mini-show">Art Smart</span>
+          <strong id="miniPlayerTitle" class="mini-title">Episode Title</strong>
+        </div>
+      </div>
+      <div class="audio-controls-center">
+        <button id="miniBackBtn" class="mini-ctrl-btn" type="button" title="Back 15s">-15s</button>
+        <button id="miniPlayBtn" class="mini-play-btn" type="button" title="Play / Pause">▶</button>
+        <button id="miniFwdBtn" class="mini-ctrl-btn" type="button" title="Forward 15s">+15s</button>
+        <button id="miniCueBtn" class="mini-cue-pill" type="button" title="Jump back to cued insight">Cue 1:30</button>
+      </div>
+      <div class="audio-time-right">
+        <span id="miniPlayerTime">0:00 / 0:00</span>
+      </div>
+    </div>
+
+    <div id="playerDrawer" class="player-drawer hidden">
+      <div class="shell drawer-inner">
+        <img id="drawerPlayerArt" src="images/art-smart-cover.png" alt="" class="drawer-art" />
+        <div class="drawer-body">
+          <div class="drawer-top">
+            <div>
+              <span id="drawerPlayerShow" class="mini-show">Art Smart</span>
+              <h4 id="drawerPlayerTitle">Episode Title</h4>
+            </div>
+            <button id="drawerCloseBtn" class="icon-btn" type="button" aria-label="Close drawer">✕</button>
+          </div>
+          <div class="drawer-seek-row">
+            <span id="drawerCurrentTime">0:00</span>
+            <input id="drawerSeekRange" type="range" min="0" max="1000" value="0" aria-label="Scrub episode" />
+            <span id="drawerDurationTime">0:00</span>
+          </div>
+          <div class="drawer-actions-row">
+            <button id="drawerBackBtn" class="btn btn-sm btn-outline" type="button">-15s</button>
+            <button id="drawerPlayBtn" class="btn btn-sm btn-coral" type="button">▶ Play Clip</button>
+            <button id="drawerFwdBtn" class="btn btn-sm btn-outline" type="button">+15s</button>
+            <button id="drawerCueBtn" class="btn btn-sm btn-yellow" type="button">⚡ Jump to Cue</button>
+            <button id="drawerRateBtn" class="btn btn-sm btn-outline" type="button">1x</button>
+            <a id="drawerSpotifyLink" class="btn btn-sm btn-outline" href="#" target="_blank" rel="noopener">Spotify ↗</a>
+            <a id="drawerAppleLink" class="btn btn-sm btn-outline" href="#" target="_blank" rel="noopener">Apple ↗</a>
+          </div>
+          <p id="playerToast" class="player-error-msg hidden"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================= MODALS ======================= -->
+  <!-- 1. Add to Playlist Modal -->
+  <div id="playlistPickerModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="playlistPickerTitle">
+    <div class="memphis-card modal-card">
+      <div class="modal-header">
+        <h3 id="playlistPickerTitle">Save to Unit Playlist</h3>
+        <button class="modal-close-btn" data-close-modal="playlistPickerModal" type="button">✕</button>
+      </div>
+      <div id="playlistPickerBody" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- 2. Badges & Mastery Modal -->
+  <div id="badgesModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="badgesModalTitle">
+    <div class="memphis-card modal-card modal-card-lg">
+      <div class="modal-header">
+        <h3 id="badgesModalTitle">🏅 Artist Badges &amp; Mastery</h3>
+        <button class="modal-close-btn" data-close-modal="badgesModal" type="button">✕</button>
+      </div>
+      <div id="badgesModalBody" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- 3. Shareable Scorecard Modal -->
+  <div id="scorecardModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="scorecardModalTitle">
+    <div class="memphis-card modal-card">
+      <div class="modal-header">
+        <h3 id="scorecardModalTitle">🖼️ Share Your Art Smart Scorecard</h3>
+        <button class="modal-close-btn" data-close-modal="scorecardModal" type="button">✕</button>
+      </div>
+      <div class="modal-body scorecard-modal-body">
+        <img id="scorecardPreviewImg" src="" alt="Generated Art Smart scorecard preview" class="scorecard-preview" />
+        <div class="modal-footer-actions">
+          <button id="downloadScorecardBtn" class="btn btn-coral" type="button">⬇ Download PNG</button>
+          <button id="copyShareCaptionBtn" class="btn btn-yellow" type="button">📋 Copy Caption</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Settings & Sync Modal -->
+  <div id="settingsModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
+    <div class="memphis-card modal-card modal-card-lg">
+      <div class="modal-header">
+        <h3 id="settingsModalTitle">⚙️ Studio Settings &amp; Host Cue Editor</h3>
+        <button class="modal-close-btn" data-close-modal="settingsModal" type="button">✕</button>
+      </div>
+      <div class="modal-body settings-body">
+        <div class="settings-section">
+          <h4>Playback &amp; Experience</h4>
+          <label class="checkbox-label">
+            <input id="settingAutoCueCheck" type="checkbox" />
+            <span>Automatically start playing the cued podcast clip as soon as I click a Solo answer</span>
+          </label>
+          <label class="checkbox-label">
+            <input id="settingSoundCheck" type="checkbox" checked />
+            <span>Enable Memphis chime sound effects</span>
+          </label>
+        </div>
+
+        <div class="settings-section">
+          <h4>Progress Sync Code</h4>
+          <p class="section-sub">Copy your sync code to transfer scores, favorites, and playlists between devices.</p>
+          <div class="sync-row">
+            <button id="exportSyncBtn" class="btn btn-sm btn-yellow" type="button">Generate Sync Code</button>
+            <input id="syncCodeInput" type="text" class="text-input" placeholder="Paste AS1-... sync code here" />
+            <button id="importSyncBtn" class="btn btn-sm btn-mint" type="button">Import</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h4>Kyle’s Host Audio Cue &amp; Question Studio</h4>
+          <p class="section-sub">Listen to any episode right here and stamp its exact explanation timestamp into your local catalog, or export an updated <code>questions.json</code>.</p>
+          <div class="studio-btn-row">
+            <button id="openHostStudioBtn" class="btn btn-coral" type="button">🎚️ Open Host Cue Studio</button>
+            <button id="resetSoloProgressBtn" class="btn btn-sm btn-outline" type="button">Reset My Solo Stats</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Host Audio Cue & Question Audit Studio Modal -->
+  <div id="hostStudioModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="hostStudioTitle">
+    <div class="memphis-card modal-card modal-card-lg">
+      <div class="modal-header">
+        <h3 id="hostStudioTitle">🎚️ Host Audio Cue &amp; Question Studio</h3>
+        <button class="modal-close-btn" data-close-modal="hostStudioModal" type="button">✕</button>
+      </div>
+      <div class="modal-body studio-modal-body">
+        <div class="field-group">
+          <label for="studioEpisodeSelect">Select Question / Episode (250)</label>
+          <select id="studioEpisodeSelect" class="select-input"></select>
+        </div>
+        <div class="studio-cue-row">
+          <div class="field-group">
+            <label for="studioCueSecondsInput">Cue Timestamp (seconds)</label>
+            <input id="studioCueSecondsInput" type="number" min="0" class="text-input" />
+          </div>
+          <div class="studio-cue-buttons">
+            <button id="studioPlayEpisodeBtn" class="btn btn-sm btn-mint" type="button">▶ Load &amp; Play in Bar</button>
+            <button id="studioStampCueBtn" class="btn btn-sm btn-yellow" type="button">🎯 Set Cue = Current Audio Time</button>
+          </div>
+        </div>
+        <div class="field-group">
+          <label for="studioQuestionInput">Question Text</label>
+          <textarea id="studioQuestionInput" class="text-input" rows="2"></textarea>
+        </div>
+        <div class="field-group">
+          <label for="studioExplanationInput">Answer Explanation</label>
+          <textarea id="studioExplanationInput" class="text-input" rows="3"></textarea>
+        </div>
+        <div class="modal-footer-actions">
+          <button id="studioSaveOverrideBtn" class="btn btn-coral" type="button">💾 Save Local Edit</button>
+          <button id="studioDownloadJsonBtn" class="btn btn-yellow" type="button">⬇ Download Updated questions.json</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

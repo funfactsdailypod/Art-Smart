@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="Art Smart Memphis Palette Crest">
+  <defs>
+    <pattern id="memphis-dots" width="14" height="14" patternUnits="userSpaceOnUse">
+      <circle cx="3" cy="3" r="1.8" fill="#0D1554" opacity="0.24" />
+      <circle cx="10" cy="10" r="1.4" fill="#FFE234" opacity="0.45" />
+    </pattern>
+  </defs>
+  <rect x="8" y="8" width="164" height="164" rx="28" fill="#FF6E73" stroke="#0D1554" stroke-width="6" />
+  <rect x="8" y="8" width="164" height="164" rx="28" fill="url(#memphis-dots)" />
+  <path d="M18 42 Q32 22 48 40 T78 38" fill="none" stroke="#53E2C5" stroke-width="6" stroke-linecap="round" />
+  <path d="M114 146 Q132 132 146 146 T166 138" fill="none" stroke="#FFE234" stroke-width="6" stroke-linecap="round" />
+  <polygon points="142,22 158,46 126,46" fill="#45C5EE" stroke="#0D1554" stroke-width="4" stroke-linejoin="round" />
+  <circle cx="32" cy="144" r="11" fill="#F59342" stroke="#0D1554" stroke-width="4" />
+  <path d="M90 36 C122 36 144 58 144 86 C144 102 130 112 117 110 C107 109 102 116 105 125 C109 135 101 144 88 144 C56 144 36 120 36 90 C36 58 60 36 90 36 Z" fill="#FFF9EE" stroke="#0D1554" stroke-width="5.5" stroke-linejoin="round" />
+  <circle cx="72" cy="64" r="10" fill="#FF6E73" stroke="#0D1554" stroke-width="3.5" />
+  <circle cx="102" cy="60" r="10" fill="#FFE234" stroke="#0D1554" stroke-width="3.5" />
+  <circle cx="122" cy="84" r="9.5" fill="#45C5EE" stroke="#0D1554" stroke-width="3.5" />
+  <circle cx="62" cy="96" r="10" fill="#6AC420" stroke="#0D1554" stroke-width="3.5" />
+  <circle cx="84" cy="118" r="8" fill="#6261E8" stroke="#0D1554" stroke-width="3.5" />
+</svg>
