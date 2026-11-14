@@ -1,5 +1,5 @@
 /**
- * Art Smart Client-Side Persistence, Teacher Room Bookmarks, Mastery Stats & Sync Codes
+ * Art Smart Client-Side Persistence, Saved Game Bookmarks, Mastery Stats & Sync Codes
  */
 import { SOLO_POINTS_PER_CORRECT, BONUS_POINTS_PER_CORRECT, BADGE_DEFS } from './config.js';
 
@@ -27,7 +27,7 @@ const DEFAULT_STATE = {
     autoCueOnReveal: false,
     playerName: '',
     playerAvatar: 'painter',
-    hostName: 'Teacher'
+    hostName: 'Game Leader'
   }
 };
 

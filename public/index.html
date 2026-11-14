@@ -7,7 +7,7 @@
   <title>Art Smart Trivia Challenge — Art Smart &amp; Who ARTed</title>
   <meta
     name="description"
-    content="Play 250 educator-curated art trivia questions from the Art Smart & Who ARTed podcasts, featuring cued episode audio clips, +100 bonus depth challenges, and live classroom group games."
+    content="Play 250 curated art trivia questions from the Art Smart & Who ARTed podcasts, featuring cued episode audio clips, +100 bonus depth challenges, and live group trivia games."
   />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png" />
@@ -23,6 +23,9 @@
 <body>
   <!-- Decorative Memphis geometric stage confetti overlay -->
   <canvas id="confettiCanvas" class="confetti-canvas" aria-hidden="true"></canvas>
+
+  <!-- Toast Notification (placed directly under body so z-index sits above sticky header) -->
+  <div id="appToast" class="app-toast hidden" role="status" aria-live="polite"></div>
 
   <!-- Drifting translucent Memphis geometric shapes floating over the wallpaper -->
   <div class="memphis-backdrop" aria-hidden="true">
@@ -122,16 +125,13 @@
   </header>
 
   <main class="shell main-stage">
-    <!-- Toast Notification -->
-    <div id="appToast" class="app-toast hidden" role="status" aria-live="polite"></div>
-
     <!-- ======================= TAB 1: SOLO QUIZ ======================= -->
     <section id="tab-solo" class="tab-panel is-active" aria-labelledby="navTabSolo">
-      <!-- Educator Mastery & Filter Toolbar -->
+      <!-- Mastery & Filter Toolbar -->
       <div class="memphis-card solo-toolbar-card">
         <div class="solo-toolbar-top">
           <div>
-            <span class="eyebrow-tag">Educator Deck &amp; Instant Cued Player</span>
+            <span class="eyebrow-tag">Curated Art Deck &amp; Instant Cued Player</span>
             <h2 class="section-heading">Pick a Focus or Jump Straight In</h2>
           </div>
           <div class="solo-show-filter" role="group" aria-label="Filter by podcast show">
@@ -315,12 +315,12 @@
       <div id="libraryPagination" class="pagination-row"></div>
     </section>
 
-    <!-- ======================= TAB 3: UNIT PLAYLISTS ======================= -->
+    <!-- ======================= TAB 3: PLAYLISTS ======================= -->
     <section id="tab-playlists" class="tab-panel" aria-labelledby="navTabPlaylists">
       <div class="memphis-card">
-        <span class="eyebrow-tag">Classroom Unit Packs &amp; Custom Decks</span>
-        <h2 class="section-heading">Starter Lesson Packs</h2>
-        <p class="section-sub">Launch a ready-made deck directly in Solo Mode or spin it into a live Classroom Arena round.</p>
+        <span class="eyebrow-tag">Themed Packs &amp; Custom Decks</span>
+        <h2 class="section-heading">Starter Art Packs</h2>
+        <p class="section-sub">Launch a ready-made deck directly in Single Player or spin it into a live Group Game round.</p>
         <div id="starterPacksGrid" class="starter-packs-grid"></div>
       </div>
 
@@ -328,10 +328,10 @@
         <div class="playlist-create-header">
           <div>
             <span class="eyebrow-tag">Build &amp; Share Your Own</span>
-            <h2 class="section-heading">My Classroom Playlists</h2>
+            <h2 class="section-heading">My Custom Playlists</h2>
           </div>
           <form id="createPlaylistForm" class="playlist-create-form">
-            <input id="newPlaylistNameInput" type="text" class="text-input" maxlength="48" placeholder="New playlist (e.g. 5th Grade Sculpture)" required />
+            <input id="newPlaylistNameInput" type="text" class="text-input" maxlength="48" placeholder="New playlist (e.g. Bold Sculpture Picks)" required />
             <button type="submit" class="btn btn-coral">+ Create Playlist</button>
           </form>
         </div>
@@ -340,28 +340,28 @@
       </div>
     </section>
 
-    <!-- ======================= TAB 4: CLASSROOM ARENA (GROUP MODE) ======================= -->
+    <!-- ======================= TAB 4: GROUP GAME ======================= -->
     <section id="tab-group" class="tab-panel" aria-labelledby="navTabGroup">
       <!-- Setup View: Host vs Join Split Cards -->
       <div id="groupSetupView" class="group-setup-grid">
-        <!-- HOST A CLASSROOM GAME CARD -->
+        <!-- HOST A GAME CARD -->
         <article id="groupHostCard" class="memphis-card group-host-card">
-          <div class="card-ribbon ribbon-violet">TEACHER / GAME LEADER</div>
-          <h2 class="section-heading">Host a Classroom Game</h2>
+          <div class="card-ribbon ribbon-violet">GAME LEADER</div>
+          <h2 class="section-heading">Host a Game</h2>
           <p class="section-sub">
-            Generate a reusable room code, project the questions on screen, and award
+            Generate a reusable game code, display the lobby &amp; questions on your screen, and award
             <strong>100 → 90 → 80 → 70 → 60 → 50</strong> speed points!
           </p>
 
           <form id="hostCreateForm" class="host-form">
             <div class="form-row-2">
               <div class="field-group">
-                <label for="hostNameInput">Leader Name</label>
-                <input id="hostNameInput" type="text" class="text-input" maxlength="32" value="Teacher" placeholder="Ms. Rivera" />
+                <label for="hostNameInput">Game Leader Name</label>
+                <input id="hostNameInput" type="text" class="text-input" maxlength="32" value="Game Leader" placeholder="Kyle" />
               </div>
               <div class="field-group">
-                <label for="hostTitleInput">Class / Game Title</label>
-                <input id="hostTitleInput" type="text" class="text-input" maxlength="64" placeholder="Art Smart Classroom Challenge" />
+                <label for="hostTitleInput">Game Title</label>
+                <input id="hostTitleInput" type="text" class="text-input" maxlength="64" placeholder="Art Smart Group Challenge" />
               </div>
             </div>
 
@@ -439,27 +439,29 @@
               <label for="hostTimerSelect">Question Countdown</label>
               <select id="hostTimerSelect" class="select-input">
                 <option value="20">20 seconds (Quick Recall)</option>
-                <option value="25" selected>25 seconds (Standard Classroom)</option>
+                <option value="25" selected>25 seconds (Standard Game)</option>
                 <option value="35">35 seconds (Read-Aloud Friendly)</option>
-                <option value="0">Untimed (Teacher Reveals Manually)</option>
+                <option value="0">Untimed (Game Leader Reveals Manually)</option>
               </select>
             </div>
 
-            <button type="submit" class="btn btn-coral btn-lg full-width">🚀 Launch Classroom Lobby</button>
+            <div id="hostFormError" class="form-inline-error hidden" role="alert"></div>
+
+            <button id="hostOpenLobbyBtn" type="submit" class="btn btn-coral btn-lg full-width">🚀 Open Up the Lobby</button>
           </form>
 
-          <!-- Reusable Teacher Saved Rooms -->
+          <!-- Reusable Saved Rooms -->
           <div id="savedTeacherRoomsSection" class="saved-rooms-box hidden">
-            <h4>Reusable Classroom Codes</h4>
+            <h4>Reusable Game Codes</h4>
             <div id="savedTeacherRoomsList" class="saved-rooms-list"></div>
           </div>
         </article>
 
-        <!-- JOIN A CLASSROOM GAME CARD -->
+        <!-- JOIN A GROUP GAME CARD -->
         <article id="groupJoinCard" class="memphis-card group-join-card">
-          <div class="card-ribbon ribbon-teal">STUDENT / PLAYER</div>
-          <h2 class="section-heading">Join a Classroom Game</h2>
-          <p id="joinDefaultSub" class="section-sub">Enter the 6-digit or custom code from your teacher’s screen, type your name, and pick an artist avatar.</p>
+          <div class="card-ribbon ribbon-teal">PLAYER</div>
+          <h2 class="section-heading">Join a Group Game</h2>
+          <p id="joinDefaultSub" class="section-sub">Enter the 6-digit or custom code from the Game Leader’s screen, type your name, and pick an avatar.</p>
 
           <div id="qrJoinLockedBanner" class="qr-join-locked-banner hidden">
             <div>
@@ -471,11 +473,11 @@
 
           <form id="playerJoinForm" class="join-form">
             <div id="joinCodeFieldGroup" class="field-group">
-              <label for="joinCodeInput">Classroom Code</label>
+              <label for="joinCodeInput">Game Code</label>
               <input id="joinCodeInput" type="text" class="text-input code-input-big" maxlength="24" placeholder="123456" autocomplete="off" required />
             </div>
             <div class="field-group">
-              <label for="joinNameInput">Your Artist Name</label>
+              <label for="joinNameInput">Player Name</label>
               <input id="joinNameInput" type="text" class="text-input" maxlength="24" placeholder="Enter your name" required />
             </div>
 
@@ -484,7 +486,7 @@
               <div id="joinAvatarGrid" class="avatar-picker-grid" role="radiogroup" aria-label="Select player avatar"></div>
             </div>
 
-            <button type="submit" class="btn btn-mint btn-lg full-width">🎨 Join Game Arena</button>
+            <button type="submit" class="btn btn-mint btn-lg full-width">🎨 Join Group Game</button>
           </form>
 
           <div id="arenaConnectionBanner" class="connection-mode-note">
@@ -493,12 +495,12 @@
         </article>
       </div>
 
-      <!-- ACTIVE CLASSROOM ROOM VIEW (Lobby / Question / Reveal / Podium) -->
+      <!-- ACTIVE GROUP ROOM VIEW (Lobby / Question / Reveal / Podium) -->
       <div id="groupRoomView" class="group-room-view hidden">
         <!-- Room Header Bar -->
         <div class="memphis-card room-top-bar">
           <div class="room-code-display">
-            <span class="eyebrow-tag" id="roomTitleTag">Classroom Game</span>
+            <span class="eyebrow-tag" id="roomTitleTag">Group Game</span>
             <div class="room-code-big-row">
               <span>CODE:</span>
               <strong id="activeRoomCode">000000</strong>
@@ -516,20 +518,20 @@
           <div class="lobby-grid">
             <div class="lobby-qr-box">
               <div id="roomQrContainer" class="qr-frame"></div>
-              <p class="qr-caption">Scan or visit on class Wi-Fi with code <strong id="lobbyInlineCode">000000</strong></p>
+              <p class="qr-caption">Scan to join on another device or enter code <strong id="lobbyInlineCode">000000</strong></p>
             </div>
             <div class="lobby-roster-box">
               <div class="roster-header">
-                <h3>Joined Artists (<span id="lobbyPlayerCount">0</span>)</h3>
+                <h3>Joined Players (<span id="lobbyPlayerCount">0</span>)</h3>
                 <span id="lobbyDeckSummary" class="deck-summary-chip">10 Questions</span>
               </div>
               <div id="lobbyPlayersWall" class="players-avatar-wall">
                 <p class="empty-muted">Waiting for players to join with their name &amp; avatar...</p>
               </div>
               <div id="hostLobbyControls" class="host-controls-bar hidden">
-                <button id="hostStartGameBtn" class="btn btn-coral btn-lg" type="button">🎬 Start Classroom Game</button>
+                <button id="hostStartGameBtn" class="btn btn-coral btn-lg" type="button">🎬 Start Group Game</button>
               </div>
-              <p id="playerLobbyWaitMsg" class="waiting-banner hidden">You’re in! Watch the teacher’s screen — the game will begin shortly.</p>
+              <p id="playerLobbyWaitMsg" class="waiting-banner hidden">You’re in! Watch the Game Leader’s screen — the game will begin shortly.</p>
             </div>
           </div>
         </div>
@@ -560,7 +562,7 @@
           <div id="liveOptionsGrid" class="live-options-grid"></div>
 
           <div id="playerLockedStatus" class="player-locked-banner hidden">
-            ✅ Choice locked in! Waiting for classmates &amp; answer reveal...
+            ✅ Choice locked in! Waiting for other players &amp; answer reveal...
           </div>
 
           <div id="hostLiveControls" class="host-controls-bar hidden">
@@ -582,7 +584,7 @@
 
             <p id="groupRevealExplanation" class="reveal-exp-copy"></p>
 
-            <!-- Classroom Cued Podcast Audio Control -->
+            <!-- Cued Podcast Audio Control -->
             <div class="classroom-cue-bar">
               <button id="groupPlayCueBtn" class="btn btn-mint" type="button">🎧 Play Episode Audio Cued to Insight</button>
               <span id="groupCueTimestampLabel" class="cue-time-badge">Cue 1:30</span>
@@ -605,11 +607,11 @@
           </div>
         </div>
 
-        <!-- Stage 4: FINAL PODIUM & REUSABLE CLASSROOM RESET -->
+        <!-- Stage 4: FINAL PODIUM & REUSABLE GAME RESET -->
         <div id="roomStageEnded" class="room-stage memphis-card hidden">
           <div class="final-podium-banner">
             <span class="eyebrow-tag">Game Complete!</span>
-            <h2 class="final-heading">🏆 Smartest Artists of the Class 🏆</h2>
+            <h2 class="final-heading">🏆 Smartest Artists Podium 🏆</h2>
             <p id="finalGameSummary" class="section-sub"></p>
           </div>
 
@@ -619,21 +621,21 @@
           <div id="hostEndedControls" class="host-ended-actions hidden">
             <div class="reset-options-card">
               <div>
-                <h4>Teaching Another Class Period Today or This Week?</h4>
+                <h4>Playing Another Round Today or This Week?</h4>
                 <p>Reset clears scores &amp; players while keeping your exact code (<strong id="resetSameCodeText">000000</strong>) and expiration active.</p>
                 <label class="checkbox-label">
                   <input id="resetDealFreshCheck" type="checkbox" checked />
-                  <span>Deal a fresh set of random questions for the next class (uncheck to reuse exact same questions)</span>
+                  <span>Deal a fresh set of random questions for the next round (uncheck to reuse exact same questions)</span>
                 </label>
               </div>
-              <button id="hostResetGameBtn" class="btn btn-coral btn-lg" type="button">🔄 Reset Game for Next Class</button>
+              <button id="hostResetGameBtn" class="btn btn-coral btn-lg" type="button">🔄 Reset Game &amp; Play Again</button>
             </div>
           </div>
 
           <div class="final-export-row">
             <button id="exportCsvBtn" class="btn btn-mint" type="button">📥 Export Scores (.CSV)</button>
             <button id="downloadGroupCardBtn" class="btn btn-yellow" type="button">🖼️ Save Podium Scorecard (.PNG)</button>
-            <button id="backToArenaLobbyBtn" class="btn btn-outline" type="button">Back to Classroom Arena</button>
+            <button id="backToArenaLobbyBtn" class="btn btn-outline" type="button">Back to Group Game Setup</button>
           </div>
         </div>
       </div>

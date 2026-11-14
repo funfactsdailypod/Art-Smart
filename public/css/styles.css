@@ -103,51 +103,58 @@ textarea {
 
 .memphis-svg {
   position: absolute;
-  width: 210px;
-  height: 210px;
   opacity: 0.78;
   will-change: transform;
   filter: drop-shadow(3px 3px 0 rgba(13, 21, 84, 0.25));
 }
 
+/* Varied floating shape sizes: half (3 of 6) twice as large (~400px), half small-to-medium */
 .memphis-svg-tl {
-  top: 112px;
-  left: -18px;
-  animation: memphisDriftA 24s ease-in-out infinite alternate;
+  top: 90px;
+  left: -56px;
+  width: 400px;
+  height: 400px;
+  animation: memphisDriftA 26s ease-in-out infinite alternate;
 }
 
 .memphis-svg-tr {
-  top: 94px;
+  top: 108px;
   right: -18px;
-  animation: memphisDriftB 28s ease-in-out infinite alternate;
+  width: 175px;
+  height: 175px;
+  animation: memphisDriftB 24s ease-in-out infinite alternate;
 }
 
 .memphis-svg-ml {
-  top: 46%;
-  left: -34px;
-  width: 165px;
-  height: 165px;
-  animation: memphisDriftC 32s ease-in-out infinite alternate;
+  top: 48%;
+  left: -20px;
+  width: 145px;
+  height: 145px;
+  animation: memphisDriftC 29s ease-in-out infinite alternate;
 }
 
 .memphis-svg-mr {
-  top: 42%;
-  right: -28px;
-  width: 165px;
-  height: 165px;
-  animation: memphisDriftD 30s ease-in-out infinite alternate;
+  top: 34%;
+  right: -54px;
+  width: 390px;
+  height: 390px;
+  animation: memphisDriftD 31s ease-in-out infinite alternate;
 }
 
 .memphis-svg-bl {
-  bottom: 24px;
-  left: -16px;
-  animation: memphisDriftB 26s ease-in-out infinite alternate-reverse;
+  bottom: -24px;
+  left: -48px;
+  width: 420px;
+  height: 420px;
+  animation: memphisDriftB 28s ease-in-out infinite alternate-reverse;
 }
 
 .memphis-svg-br {
-  bottom: 22px;
-  right: -14px;
-  animation: memphisDriftA 29s ease-in-out infinite alternate-reverse;
+  bottom: 30px;
+  right: -12px;
+  width: 220px;
+  height: 220px;
+  animation: memphisDriftA 25s ease-in-out infinite alternate-reverse;
 }
 
 @keyframes memphisDriftA {
@@ -1552,10 +1559,22 @@ textarea {
   font-weight: 800;
 }
 
+.form-inline-error {
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: var(--border-thin);
+  background: #FFF0F1;
+  color: #9A1420;
+  font-weight: 800;
+  font-size: 0.88rem;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
 .lobby-grid {
   display: grid;
-  grid-template-columns: 240px 1fr;
-  gap: 22px;
+  grid-template-columns: minmax(250px, 300px) 1fr;
+  gap: 24px;
   align-items: start;
 }
 
@@ -2188,13 +2207,16 @@ textarea {
 
 /* Responsive Breakpoints */
 @media (max-width: 900px) {
-  .group-setup-grid,
-  .lobby-grid {
+  .group-setup-grid {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 680px) {
+  .lobby-grid {
+    grid-template-columns: 1fr;
+  }
+
   .header-hud {
     width: 100%;
     align-items: stretch;
@@ -2205,9 +2227,18 @@ textarea {
     justify-content: space-between;
   }
 
-  .memphis-svg {
-    width: 135px;
-    height: 135px;
+  .memphis-svg-tl,
+  .memphis-svg-mr,
+  .memphis-svg-bl {
+    width: 240px;
+    height: 240px;
+  }
+
+  .memphis-svg-tr,
+  .memphis-svg-ml,
+  .memphis-svg-br {
+    width: 115px;
+    height: 115px;
   }
 
   .options-grid,

@@ -218,8 +218,8 @@ export class ClassroomArenaClient {
     return {
       code: row.code,
       hostId: row.host_id,
-      hostName: s.hostName || 'Teacher',
-      title: s.title || 'Art Smart Classroom Game',
+      hostName: s.hostName || 'Game Leader',
+      title: s.title || 'Art Smart Group Game',
       status: row.status,
       currentIndex: row.current_index || 0,
       questionMode: s.questionMode || 'random',
@@ -230,7 +230,7 @@ export class ClassroomArenaClient {
       questionGuids: Array.isArray(row.question_guids) ? row.question_guids : [],
       players: row.players || {},
       pacing: s.pacing || 'timed',
-      timerSec: s.timerSec || 25,
+      timerSec: s.timerSec ?? 25,
       expiryKey: s.expiryKey || '1d',
       showAudioCue: Boolean(s.showAudioCue),
       answerSeq: s.answerSeq || 0,
@@ -273,8 +273,8 @@ export class ClassroomArenaClient {
     const payload = {
       code,
       hostId: opts.hostId,
-      hostName: opts.hostName || 'Teacher',
-      title: opts.title || 'Art Smart Classroom Game',
+      hostName: opts.hostName || 'Game Leader',
+      title: opts.title || 'Art Smart Group Game',
       status: 'lobby',
       currentIndex: 0,
       questionMode: opts.questionMode || 'random',
@@ -284,7 +284,7 @@ export class ClassroomArenaClient {
       isEndless: Boolean(opts.isEndless),
       questionGuids: opts.questionGuids || [],
       pacing: opts.pacing || 'timed',
-      timerSec: opts.timerSec || 25,
+      timerSec: opts.timerSec ?? 25,
       expiryKey,
       expiresAt,
       createdAt: new Date().toISOString(),
@@ -302,7 +302,7 @@ export class ClassroomArenaClient {
         body: JSON.stringify(payload)
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Could not create classroom room.');
+      if (!res.ok) throw new Error(data.error || 'Could not create game room.');
       return data;
     }
 
@@ -315,10 +315,27 @@ export class ClassroomArenaClient {
       });
       if (!res.ok) {
         const msg = await res.text();
-        throw new Error(msg.includes('duplicate') ? `Code "${code}" is already taken.` : 'Could not create room on server.');
+        if (res.status === 409 || /duplicate/i.test(msg)) {
+          const nowIso = encodeURIComponent(new Date().toISOString());
+          await fetch(
+            `${base}/rest/v1/art_smart_rooms?code=eq.${encodeURIComponent(code)}&expires_at=lte.${nowIso}`,
+            { method: 'DELETE', headers: this.getSupabaseHeaders() }
+          ).catch(() => {});
+          const retry = await fetch(`${base}/rest/v1/art_smart_rooms`, {
+            method: 'POST',
+            headers: this.getSupabaseHeaders(),
+            body: JSON.stringify(this.toSupabaseRow(payload))
+          });
+          if (retry.ok) {
+            const retryRows = await retry.json();
+            return this.fromSupabaseRow(retryRows[0] || this.toSupabaseRow(payload));
+          }
+          throw new Error(`Code "${code}" is already active! Pick another code, click 🎲 6-Digit, or reopen your saved game below.`);
+        }
+        throw new Error('Could not create game room on server. Please try again.');
       }
       const rows = await res.json();
-      return this.fromSupabaseRow(rows[0]);
+      return this.fromSupabaseRow(rows[0] || this.toSupabaseRow(payload));
     }
 
     const existing = this.readLocalStorageRoom(code);
@@ -345,12 +362,12 @@ export class ClassroomArenaClient {
       });
       if (!res.ok) throw new Error('Could not connect to room.');
       const rows = await res.json();
-      if (!rows.length) throw new Error('Classroom code not found or expired.');
+      if (!rows.length) throw new Error('Game code not found or expired.');
       return recalculateRoomScoresClient(this.fromSupabaseRow(rows[0]), this.questionMap);
     }
 
     const r = this.readLocalStorageRoom(clean);
-    if (!r) throw new Error('Classroom code not found in local demo mode.');
+    if (!r) throw new Error('Game code not found in local demo mode.');
     return recalculateRoomScoresClient(r, this.questionMap);
   }
 
@@ -415,7 +432,7 @@ export class ClassroomArenaClient {
       serverPayload: { action: 'answer', playerId, qIndex, choice, answeredAtMs: nowMs },
       applyLocal: (room) => {
         const p = room.players?.[playerId];
-        if (!p) throw new Error('Player is not in this classroom game.');
+        if (!p) throw new Error('Player is not in this group game.');
         p.answers = p.answers || {};
         const key = String(qIndex);
         if (!p.answers[key]) {

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'art-smart-trivia-v2';
+const CACHE_NAME = 'art-smart-trivia-v3';
 const APP_SHELL = [
   './',
   './index.html',
@@ -48,12 +48,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (url.pathname.endsWith('questions.json')) {
+  const isMutableAppAsset =
+    url.origin === self.location.origin &&
+    (url.pathname === '/' ||
+      url.pathname.endsWith('.html') ||
+      url.pathname.endsWith('.js') ||
+      url.pathname.endsWith('.css') ||
+      url.pathname.endsWith('.json') ||
+      url.pathname.endsWith('.webmanifest'));
+
+  if (isMutableAppAsset) {
     event.respondWith(
-      fetch(request)
+      fetch(request, { cache: 'no-cache' })
         .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          if (res && res.status === 200) {
+            const copy = res.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
           return res;
         })
         .catch(() => caches.match(request))

@@ -247,7 +247,7 @@ export function renderQrSvg(text, { dark = '#0D1554', light = '#FFFDF7', margin 
     }
   }
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${total} ${total}" shape-rendering="crispEdges" role="img" aria-label="QR Code to join classroom game">
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${total} ${total}" shape-rendering="crispEdges" role="img" aria-label="QR Code to join group game">
     <rect width="${total}" height="${total}" fill="${light}" rx="1.5"/>
     <path d="${path}" fill="${dark}"/>
   </svg>`;

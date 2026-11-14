@@ -74,8 +74,8 @@ export const ARTIST_AVATARS = [
 ];
 
 export const ROOM_EXPIRY_OPTIONS = [
-  { key: '1h', label: '1 Hour', description: 'Single class period' },
-  { key: '1d', label: '1 Day', description: 'Same code all school day' },
+  { key: '1h', label: '1 Hour', description: 'Quick 1-hour session' },
+  { key: '1d', label: '1 Day', description: 'Same code all day' },
   { key: '1w', label: '1 Week', description: 'Reuse all week long' }
 ];
 
@@ -94,8 +94,8 @@ export const UNIT_STARTER_PACKS = [
   },
   {
     id: 'starter-bell-ringers',
-    title: 'Quick Bell Ringers (≤ 7 min)',
-    subtitle: 'Ultra-short episodes ideal for class warmups',
+    title: 'Quick Warm-Ups (≤ 7 min)',
+    subtitle: 'Ultra-short episodes ideal for lightning rounds',
     filter: (ep) => ep.durationSec <= 420
   },
   {
@@ -181,7 +181,7 @@ export const BADGE_DEFS = [
   },
   {
     id: 'classroom-competitor',
-    title: 'Classroom Competitor',
+    title: 'Group Challenger',
     icon: '🏆',
     description: 'Join or host a Live Group Game.',
     check: (s) => (s.groupGamesPlayed || 0) >= 1

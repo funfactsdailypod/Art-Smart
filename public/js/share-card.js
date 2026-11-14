@@ -184,7 +184,7 @@ export function buildGroupPodiumDataUrl(room, topThree) {
 
   ctx.fillStyle = '#0D1554';
   ctx.font = '700 24px "Plus Jakarta Sans", system-ui, sans-serif';
-  ctx.fillText('Art Smart & Who ARTed Classroom Edition', 130, 916);
+  ctx.fillText('Art Smart & Who ARTed Group Edition', 130, 916);
 
   return canvas.toDataURL('image/png');
 }

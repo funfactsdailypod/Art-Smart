@@ -624,7 +624,7 @@ function renderPlaylistsTab() {
         </div>
         <div class="episode-tile-actions">
           <button type="button" class="btn btn-sm btn-coral" data-pack-solo="${pack.id}">▶ Solo</button>
-          <button type="button" class="btn btn-sm btn-violet" data-pack-host="${pack.id}">🏟️ Classroom</button>
+          <button type="button" class="btn btn-sm btn-violet" data-pack-host="${pack.id}">🏟️ Group Game</button>
         </div>
       </article>`;
     }).join('');
@@ -802,7 +802,7 @@ function renderSavedTeacherRooms() {
     .map(
       (r) => `<div class="saved-room-row">
         <div>
-          <strong>Code: ${escapeHtml(r.code)}</strong> · ${escapeHtml(r.title || 'Classroom Game')}
+          <strong>Code: ${escapeHtml(r.code)}</strong> · ${escapeHtml(r.title || 'Group Game')}
           <div class="meta-muted" style="font-size:0.78rem;">${formatExpiryRemaining(r.expiresAt)}</div>
         </div>
         <div class="episode-tile-actions">
@@ -816,6 +816,26 @@ function renderSavedTeacherRooms() {
 
 async function handleCreateClassroomGame(e) {
   e.preventDefault();
+  const errBanner = document.getElementById('hostFormError');
+  const submitBtn = document.getElementById('hostOpenLobbyBtn');
+  const showHostErr = (msg) => {
+    if (errBanner) {
+      errBanner.textContent = msg;
+      errBanner.classList.remove('hidden');
+    }
+    showToast(msg, 4200);
+  };
+  if (errBanner) errBanner.classList.add('hidden');
+
+  if (!APP_STATE.questions.length) {
+    try {
+      await loadCatalog();
+    } catch {
+      showHostErr('Still loading questions — please try opening the lobby again in a moment.');
+      return;
+    }
+  }
+
   const mode = APP_STATE.hostConfig.questionMode;
   const theme = document.getElementById('hostThemeCategory')?.value || 'All';
   const showFilter = document.getElementById('hostThemeShow')?.value || 'All';
@@ -826,22 +846,27 @@ async function handleCreateClassroomGame(e) {
   if (mode === 'individual') {
     questionGuids = Array.from(APP_STATE.hostConfig.pickedGuids);
     if (!questionGuids.length) {
-      showToast('Select at least 1 question (or switch to Random / Choose a Theme).');
+      showHostErr('Select at least 1 question (or switch to Random Assortment / Choose a Theme).');
       return;
     }
   } else {
     const pool = buildQuestionPoolForHostConfig({ questionMode: mode, theme, showFilter });
     if (!pool.length) {
-      showToast('No questions found for that theme.');
+      showHostErr('No questions matched that theme — try broadening your filter.');
       return;
     }
     questionGuids = pool.slice(0, Math.min(requestedCount, pool.length));
   }
 
-  const hostName = document.getElementById('hostNameInput')?.value.trim() || 'Teacher';
-  const title = document.getElementById('hostTitleInput')?.value.trim() || 'Art Smart Classroom Challenge';
+  const hostName = document.getElementById('hostNameInput')?.value.trim() || 'Game Leader';
+  const title = document.getElementById('hostTitleInput')?.value.trim() || 'Art Smart Group Challenge';
   const customCode = sanitizeRoomCode(document.getElementById('hostRoomCodeInput')?.value) || generateSixDigitCode();
   const timerSec = Number(document.getElementById('hostTimerSelect')?.value ?? 25);
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = '⏳ Opening Lobby...';
+  }
 
   try {
     const room = await arenaClient.createRoom({
@@ -875,9 +900,14 @@ async function handleCreateClassroomGame(e) {
     syncHeaderHud();
 
     enterActiveRoom(room, true);
-    showToast(`Classroom Arena open! Share code ${room.code}`);
+    showToast(`Lobby open! Share code ${room.code}`);
   } catch (err) {
-    showToast(err.message || 'Could not create classroom room.');
+    showHostErr(err?.message || 'Could not open the game lobby. Please try again.');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '🚀 Open Up the Lobby';
+    }
   }
 }
 
@@ -886,7 +916,7 @@ async function handleJoinClassroomGame(e) {
   const code = sanitizeRoomCode(document.getElementById('joinCodeInput')?.value);
   const name = document.getElementById('joinNameInput')?.value.trim();
   if (!code || !name) {
-    showToast('Enter both the room code and your artist name.');
+    showToast('Enter both the game code and your player name.');
     return;
   }
 
@@ -901,7 +931,7 @@ async function handleJoinClassroomGame(e) {
     syncHeaderHud();
     enterActiveRoom(room, room.hostId === APP_STATE.clientId);
   } catch (err) {
-    showToast(err.message || 'Could not join that classroom game.');
+    showToast(err.message || 'Could not join that game.');
   }
 }
 
@@ -916,6 +946,7 @@ function enterActiveRoom(room, isHost) {
 
   startRoomSyncLoops();
   renderActiveRoom();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function leaveActiveRoom() {
@@ -1016,7 +1047,7 @@ function renderActiveRoom() {
   const room = APP_STATE.activeRoom;
   if (!room) return;
 
-  document.getElementById('roomTitleTag').textContent = room.title || 'Art Smart Classroom Game';
+  document.getElementById('roomTitleTag').textContent = room.title || 'Art Smart Group Game';
   document.getElementById('activeRoomCode').textContent = room.code;
   document.getElementById('lobbyInlineCode').textContent = room.code;
   document.getElementById('resetSameCodeText').textContent = room.code;
@@ -1059,7 +1090,7 @@ function renderActiveRoom() {
         ? playersList
             .map((p) => `<span class="player-chip">${getAvatarEmoji(p.avatar)} ${escapeHtml(p.name)}</span>`)
             .join('')
-        : '<p class="empty-muted">Waiting for artists to join with their name &amp; avatar...</p>';
+        : '<p class="empty-muted">Waiting for players to join with their name &amp; avatar...</p>';
     }
 
     document.getElementById('hostLobbyControls')?.classList.toggle('hidden', !APP_STATE.isHost);
@@ -1307,7 +1338,7 @@ async function hostResetClassroomGame() {
     APP_STATE.activeRoom = await arenaClient.resetRoomForNextClass(room.code, newGuids);
     APP_STATE.autoRevealingForIdx = -1;
     renderActiveRoom();
-    showToast(`Game reset! Students can join room ${room.code} right away.`);
+    showToast(`Game reset! Players can join room ${room.code} right away.`);
   } catch (err) {
     showToast(err.message);
   }
@@ -1924,7 +1955,7 @@ function launchPlaylistIntoGroupSetup(title, guids) {
   document.getElementById('hostThemeOptionsBox')?.classList.add('hidden');
   document.getElementById('hostIndividualPickerBox')?.classList.remove('hidden');
   populateHostIndividualPicker();
-  showToast(`Loaded "${title}" (${guids.length} questions) into Classroom Setup!`);
+  showToast(`Loaded "${title}" (${guids.length} questions) into Group Game Setup!`);
 }
 
 async function initApp() {
@@ -1962,11 +1993,11 @@ async function initApp() {
   const connBanner = document.getElementById('arenaConnectionBanner');
   if (connBanner) {
     if (backendInfo.mode === 'supabase') {
-      connBanner.textContent = '☁️ Online Cloud Sync Active — students can join from any network!';
+      connBanner.textContent = '☁️ Online Cloud Sync Active — players can join from any network!';
     } else if (backendInfo.mode === 'local-server') {
-      connBanner.textContent = `📡 Classroom Wi-Fi Server Active (${backendInfo.lanUrl || window.location.origin}) — multi-device ready!`;
+      connBanner.textContent = `📡 Local Wi-Fi Server Active (${backendInfo.lanUrl || window.location.origin}) — multi-device ready!`;
     } else {
-      connBanner.textContent = '💻 Single-Browser Demo Mode Active — start local Ruby server or add Supabase for multi-device rooms.';
+      connBanner.textContent = '💻 Single-Browser Demo Mode Active — start local Ruby server or add Supabase for multi-device games.';
     }
   }
 
