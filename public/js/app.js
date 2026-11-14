@@ -45,6 +45,10 @@ const APP_STATE = {
   libraryPage: 1,
   libraryPageSize: 18,
   pendingPlaylistGuid: null,
+  pendingAddPlaylistId: null,
+  builderDraftGuids: new Set(),
+  addEpisodesDraftGuids: new Set(),
+  expandedPackIds: new Set(),
   hostConfig: {
     questionMode: 'random',
     questionCount: '10',
@@ -250,12 +254,44 @@ function populateCategoryControls() {
     }).join('');
   }
 
-  const selectIds = ['libraryCategorySelect', 'hostThemeCategory', 'hostPickerCatFilter'];
+  const selectIds = ['libraryCategorySelect', 'hostThemeCategory', 'hostPickerCatFilter', 'builderCategorySelect'];
   selectIds.forEach((id) => {
     const sel = document.getElementById(id);
     if (!sel) return;
     sel.innerHTML = CATEGORIES.map((c) => `<option value="${escapeHtml(c)}">${c === 'All' ? 'All Categories' : escapeHtml(c)}</option>`).join('');
   });
+}
+
+function launchSoloPlaylist(title, guids = []) {
+  if (!guids.length) {
+    showToast('Select at least one episode checkbox first!');
+    return false;
+  }
+  APP_STATE.soloFilter = {
+    category: 'All',
+    show: 'All',
+    shortOnly: false,
+    bonusOnly: false,
+    playlistTitle: title,
+    playlistGuids: [...guids]
+  };
+  document.querySelectorAll('[data-solo-show]').forEach((b) => {
+    b.classList.toggle('is-active', b.dataset.soloShow === 'All');
+  });
+  const shortBtn = document.getElementById('soloShortToggleBtn');
+  if (shortBtn) {
+    shortBtn.classList.remove('is-active');
+    shortBtn.setAttribute('aria-pressed', 'false');
+  }
+  const bonusBtn = document.getElementById('soloBonusOnlyBtn');
+  if (bonusBtn) {
+    bonusBtn.classList.remove('is-active');
+    bonusBtn.setAttribute('aria-pressed', 'false');
+  }
+  populateCategoryControls();
+  rebuildSoloFilteredDeck({ resetIndex: true });
+  switchTab('solo');
+  return true;
 }
 
 function rebuildSoloFilteredDeck({ resetIndex = false } = {}) {
@@ -480,7 +516,20 @@ function handleSoloBonusClick(bonusChoiceIdx) {
   renderSoloQuestionCard();
 }
 
+function syncLibraryPlayingButtons(snap) {
+  const activeGuid = snap?.episode?.guid || null;
+  const playing = Boolean(activeGuid && snap?.isPlaying);
+  document.querySelectorAll('#libraryCardsGrid [data-ep-guid]').forEach((tile) => {
+    const tileGuid = tile.dataset.epGuid;
+    const isHere = Boolean(playing && tileGuid === activeGuid);
+    tile.classList.toggle('is-playing', isHere);
+    const btn = tile.querySelector('[data-lib-listen]');
+    if (btn) btn.textContent = isHere ? '⏸ Pause' : '🎧 Listen';
+  });
+}
+
 function syncEmbeddedPlayerControls(snap) {
+  syncLibraryPlayingButtons(snap);
   const ep = getActiveSoloEpisode();
   const playBtn = document.getElementById('embeddedPlayCueBtn');
   const seekEl = document.getElementById('embeddedSeekRange');
@@ -565,12 +614,14 @@ function renderLibrary() {
       grid.innerHTML = `<div class="memphis-card"><p>No episodes matched your filters.</p></div>`;
     } else {
       const st = storage.getState();
+      const audioSnap = audioPlayer.getSnapshot();
       grid.innerHTML = slice
         .map((ep) => {
           const isFav = st.favorites.includes(ep.guid);
           const ans = st.answered[ep.guid];
           const showClass = ep.show === 'Art Smart' ? 'is-art-smart' : '';
-          return `<article class="episode-tile">
+          const isPlayingHere = Boolean(audioSnap.episode && audioSnap.episode.guid === ep.guid && audioSnap.isPlaying);
+          return `<article class="episode-tile ${isPlayingHere ? 'is-playing' : ''}" data-ep-guid="${escapeHtml(ep.guid)}">
             <div>
               <div class="episode-tile-top">
                 <img src="${escapeHtml(ep.artworkUrl || SHOW_META[ep.show]?.cover || '')}" alt="" class="episode-tile-art" loading="lazy" />
@@ -586,7 +637,7 @@ function renderLibrary() {
             </div>
             <div class="episode-tile-actions">
               <button type="button" class="btn btn-sm btn-coral" data-lib-play="${escapeHtml(ep.guid)}">▶ Quiz</button>
-              <button type="button" class="btn btn-sm btn-mint" data-lib-listen="${escapeHtml(ep.guid)}">🎧 Cue ${formatTime(ep.cueSeconds)}</button>
+              <button type="button" class="btn btn-sm btn-mint" data-lib-listen="${escapeHtml(ep.guid)}">${isPlayingHere ? '⏸ Pause' : '🎧 Listen'}</button>
               <button type="button" class="btn btn-sm btn-outline" data-lib-fav="${escapeHtml(ep.guid)}">${isFav ? '★' : '☆'}</button>
               <button type="button" class="btn btn-sm btn-outline" data-lib-pl="${escapeHtml(ep.guid)}">+ Playlist</button>
             </div>
@@ -611,67 +662,256 @@ function renderLibrary() {
 }
 
 /* ==================== PLAYLISTS & STARTER PACKS ==================== */
-function renderPlaylistsTab() {
-  const packsGrid = document.getElementById('starterPacksGrid');
-  if (packsGrid) {
-    packsGrid.innerHTML = UNIT_STARTER_PACKS.map((pack) => {
-      const count = APP_STATE.questions.filter(pack.filter).length;
-      return `<article class="starter-pack-card">
-        <div>
-          <span class="eyebrow-tag">${count} Episodes</span>
-          <h3>${escapeHtml(pack.title)}</h3>
-          <p>${escapeHtml(pack.subtitle)}</p>
-        </div>
-        <div class="episode-tile-actions">
-          <button type="button" class="btn btn-sm btn-coral" data-pack-solo="${pack.id}">▶ Solo</button>
-          <button type="button" class="btn btn-sm btn-violet" data-pack-host="${pack.id}">🏟️ Group Game</button>
-        </div>
-      </article>`;
-    }).join('');
-  }
+function getBuilderFilteredEpisodes() {
+  const q = (document.getElementById('builderSearchInput')?.value || '').trim().toLowerCase();
+  const show = document.getElementById('builderShowSelect')?.value || 'All';
+  const cat = document.getElementById('builderCategorySelect')?.value || 'All';
+  return APP_STATE.questions.filter((ep) => {
+    if (show !== 'All' && ep.show !== show) return false;
+    if (cat !== 'All' && ep.category !== cat) return false;
+    if (q) {
+      const hay = `${ep.title} ${ep.question} ${ep.category} ${ep.show}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
 
-  const container = document.getElementById('customPlaylistsContainer');
-  if (!container) return;
-  const pls = storage.getState().playlists;
-  if (!pls.length) {
-    container.innerHTML = `<p class="empty-muted">No custom playlists yet. Create one above or click "+ Playlist" on any episode!</p>`;
+function renderPlaylistBuilderList() {
+  const listEl = document.getElementById('builderEpisodeList');
+  const countEl = document.getElementById('builderSelectedCount');
+  if (countEl) countEl.textContent = String(APP_STATE.builderDraftGuids.size);
+  if (!listEl) return;
+
+  const matches = getBuilderFilteredEpisodes();
+  if (!matches.length) {
+    listEl.innerHTML = `<p class="empty-muted">No episodes matched that search or filter.</p>`;
     return;
   }
 
-  container.innerHTML = pls
-    .map((pl) => {
-      const tracksHtml = pl.guids
-        .map((guid, idx) => {
-          const ep = APP_STATE.questionMap.get(guid);
-          if (!ep) return '';
-          return `<div class="playlist-track-item" draggable="true" data-pl-id="${escapeHtml(pl.id)}" data-track-idx="${idx}">
-            <div>
-              <strong>${idx + 1}. ${escapeHtml(ep.title)}</strong>
-              <span class="dur-badge">${escapeHtml(ep.category)} · ${formatTime(ep.durationSec)}</span>
+  listEl.innerHTML = matches
+    .slice(0, 100)
+    .map((ep) => {
+      const checked = APP_STATE.builderDraftGuids.has(ep.guid) ? 'checked' : '';
+      return `<label class="picker-row">
+        <input type="checkbox" data-builder-guid="${escapeHtml(ep.guid)}" ${checked} />
+        <span class="picker-row-copy">
+          <strong>${escapeHtml(ep.title)}</strong>
+          <span>${escapeHtml(ep.show)} · ${escapeHtml(ep.category)} · ${formatTime(ep.durationSec)}</span>
+        </span>
+      </label>`;
+    })
+    .join('');
+}
+
+function getPackEpisodes(pack) {
+  const allEps = APP_STATE.questions.filter(pack.filter);
+  const checkedEps = allEps.filter((ep) => storage.isPackGuidChecked(pack.id, ep.guid));
+  return { allEps, checkedEps };
+}
+
+function getPlaylistEpisodes(pl) {
+  const allEps = (pl?.guids || []).map((g) => APP_STATE.questionMap.get(g)).filter(Boolean);
+  const checkedEps = allEps.filter((ep) => storage.isPlaylistGuidChecked(pl.id, ep.guid));
+  return { allEps, checkedEps };
+}
+
+function playCheckedEpisodeQueue(title, checkedEps, startGuid = null, resolverFn = null) {
+  if (!checkedEps.length) {
+    showToast('Select at least one episode checkbox first!');
+    return false;
+  }
+  let startIdx = 0;
+  if (startGuid) {
+    const idx = checkedEps.findIndex((ep) => ep.guid === startGuid);
+    if (idx !== -1) startIdx = idx;
+  }
+  audioPlayer.startPlaylistQueue(title, checkedEps, startIdx, resolverFn);
+  storage.recordClipListened();
+  syncHeaderHud();
+  const chosen = checkedEps[startIdx];
+  showToast(`🎧 Playing "${chosen.title}" (${startIdx + 1}/${checkedEps.length} checked)`);
+  return true;
+}
+
+function renderPlaylistsTab() {
+  renderPlaylistBuilderList();
+
+  const container = document.getElementById('customPlaylistsContainer');
+  if (container) {
+    const pls = storage.getState().playlists;
+    if (!pls.length) {
+      container.innerHTML = `<p class="empty-muted">No custom playlists yet. Check episodes above and click "+ Create Playlist", or click "+ Playlist" on any episode card.</p>`;
+    } else {
+      container.innerHTML = pls
+        .map((pl) => {
+          const { allEps, checkedEps } = getPlaylistEpisodes(pl);
+          const tracksHtml = allEps
+            .map((ep, idx) => {
+              const isChecked = storage.isPlaylistGuidChecked(pl.id, ep.guid);
+              const checkId = `plChk-${pl.id}-${idx}`;
+              return `<div class="playlist-track-item ${isChecked ? '' : 'is-skipped'}" draggable="true" data-pl-id="${escapeHtml(pl.id)}" data-track-idx="${idx}">
+                <div class="playlist-track-left">
+                  <input id="${escapeHtml(checkId)}" type="checkbox" class="playlist-track-check" data-pl-check="${escapeHtml(pl.id)}" data-track-guid="${escapeHtml(ep.guid)}" ${isChecked ? 'checked' : ''} />
+                  <label for="${escapeHtml(checkId)}" class="playlist-track-label">
+                    <span class="playlist-track-title">${idx + 1}. ${escapeHtml(ep.title)}</span>
+                    <span class="playlist-track-meta">
+                      <span class="dur-badge">${escapeHtml(ep.show)} · ${escapeHtml(ep.category)} · ${formatTime(ep.durationSec)}</span>
+                      ${isChecked ? '' : '<span class="playlist-skipped-chip">Skipped</span>'}
+                    </span>
+                  </label>
+                </div>
+                <div class="playlist-track-actions">
+                  <button type="button" class="btn btn-sm btn-mint" data-pl-track-listen="${escapeHtml(pl.id)}" data-track-guid="${escapeHtml(ep.guid)}" title="Listen from start">🎧</button>
+                  <button type="button" class="btn btn-sm btn-outline" data-pl-rem-track="${escapeHtml(pl.id)}" data-track-guid="${escapeHtml(ep.guid)}" title="Remove from playlist">✕</button>
+                </div>
+              </div>`;
+            })
+            .join('');
+
+          const bulkHtml = allEps.length
+            ? `<div class="playlist-bulk-bar">
+                <span>${checkedEps.length} of ${allEps.length} episodes checked (unchecked will skip)</span>
+                <div class="playlist-bulk-actions">
+                  <button type="button" class="btn btn-sm btn-outline" data-pl-check-all="${escapeHtml(pl.id)}">Check All</button>
+                  <button type="button" class="btn btn-sm btn-outline" data-pl-check-none="${escapeHtml(pl.id)}">Uncheck All</button>
+                </div>
+              </div>`
+            : '';
+
+          return `<div class="custom-playlist-card" data-custom-pl="${escapeHtml(pl.id)}">
+            <div class="playlist-card-head">
+              <div>
+                <h3>${escapeHtml(pl.name)} (${checkedEps.length}/${allEps.length} active)</h3>
+              </div>
+              <div class="episode-tile-actions">
+                <button type="button" class="btn btn-sm btn-mint" data-pl-listen="${escapeHtml(pl.id)}">🎧 Play Checked</button>
+                <button type="button" class="btn btn-sm btn-coral" data-pl-solo="${escapeHtml(pl.id)}">▶ Solo Quiz</button>
+                <button type="button" class="btn btn-sm btn-violet" data-pl-host="${escapeHtml(pl.id)}">🏟️ Group Game</button>
+                <button type="button" class="btn btn-sm btn-outline" data-pl-add="${escapeHtml(pl.id)}">➕ Add Episodes</button>
+                <button type="button" class="btn btn-sm btn-yellow" data-pl-share="${escapeHtml(pl.id)}">🔗 Share</button>
+                <button type="button" class="btn btn-sm btn-outline" data-pl-del="${escapeHtml(pl.id)}">Delete</button>
+              </div>
             </div>
-            <button type="button" class="btn btn-sm btn-outline" data-pl-rem-track="${escapeHtml(pl.id)}" data-track-guid="${escapeHtml(guid)}">✕</button>
+            ${bulkHtml}
+            <div class="playlist-tracks-list">${tracksHtml || '<p class="empty-muted">Empty playlist — click "➕ Add Episodes" above or add from the Episode Library.</p>'}</div>
           </div>`;
         })
         .join('');
 
-      return `<div class="custom-playlist-card">
-        <div class="playlist-card-head">
-          <div>
-            <h3>${escapeHtml(pl.name)} (${pl.guids.length} episodes)</h3>
-          </div>
-          <div class="episode-tile-actions">
-            <button type="button" class="btn btn-sm btn-coral" data-pl-solo="${escapeHtml(pl.id)}">▶ Play Solo</button>
-            <button type="button" class="btn btn-sm btn-violet" data-pl-host="${escapeHtml(pl.id)}">🏟️ Launch Group</button>
-            <button type="button" class="btn btn-sm btn-yellow" data-pl-share="${escapeHtml(pl.id)}">🔗 Share Link</button>
-            <button type="button" class="btn btn-sm btn-outline" data-pl-del="${escapeHtml(pl.id)}">Delete</button>
-          </div>
+      wirePlaylistDragDrop();
+    }
+  }
+
+  const packsGrid = document.getElementById('starterPacksGrid');
+  if (packsGrid) {
+    packsGrid.innerHTML = UNIT_STARTER_PACKS.map((pack) => {
+      const { allEps, checkedEps } = getPackEpisodes(pack);
+      const isExpanded = APP_STATE.expandedPackIds.has(pack.id);
+      const drawerHtml = isExpanded
+        ? `<div class="pack-episodes-drawer">
+            <div class="playlist-bulk-bar">
+              <span>${checkedEps.length} of ${allEps.length} checked</span>
+              <div class="playlist-bulk-actions">
+                <button type="button" class="btn btn-sm btn-outline" data-pack-check-all="${escapeHtml(pack.id)}">All</button>
+                <button type="button" class="btn btn-sm btn-outline" data-pack-check-none="${escapeHtml(pack.id)}">None</button>
+              </div>
+            </div>
+            <div class="pack-episodes-scroll">
+              ${allEps
+                .map((ep) => {
+                  const isChecked = storage.isPackGuidChecked(pack.id, ep.guid);
+                  return `<label class="picker-row">
+                    <input type="checkbox" data-pack-check="${escapeHtml(pack.id)}" data-pack-guid="${escapeHtml(ep.guid)}" ${isChecked ? 'checked' : ''} />
+                    <span class="picker-row-copy">
+                      <strong>${escapeHtml(ep.title)}</strong>
+                      <span>${escapeHtml(ep.show)} · ${formatTime(ep.durationSec)}</span>
+                    </span>
+                    <button type="button" class="btn btn-sm btn-mint" data-pack-track-listen="${escapeHtml(pack.id)}" data-track-guid="${escapeHtml(ep.guid)}" title="Play episode from start">🎧</button>
+                  </label>`;
+                })
+                .join('')}
+            </div>
+          </div>`
+        : '';
+
+      return `<article class="starter-pack-card">
+        <div>
+          <span class="eyebrow-tag">${checkedEps.length} / ${allEps.length} Episodes Checked</span>
+          <h3>${escapeHtml(pack.title)}</h3>
+          <p>${escapeHtml(pack.subtitle)}</p>
         </div>
-        <div class="playlist-tracks-list">${tracksHtml || '<p class="empty-muted">Empty playlist — add questions from the Library tab.</p>'}</div>
-      </div>`;
+        <div class="episode-tile-actions">
+          <button type="button" class="btn btn-sm btn-mint" data-pack-listen="${escapeHtml(pack.id)}">🎧 Play Checked</button>
+          <button type="button" class="btn btn-sm btn-coral" data-pack-solo="${escapeHtml(pack.id)}">▶ Solo Quiz</button>
+          <button type="button" class="btn btn-sm btn-violet" data-pack-host="${escapeHtml(pack.id)}">🏟️ Group Game</button>
+          <button type="button" class="btn btn-sm btn-outline" data-pack-toggle="${escapeHtml(pack.id)}">${isExpanded ? '▲ Hide Episodes' : `☑️ Episodes (${allEps.length})`}</button>
+        </div>
+        ${drawerHtml}
+      </article>`;
+    }).join('');
+  }
+}
+
+function renderAddEpisodesModalList() {
+  const listEl = document.getElementById('addEpisodesModalList');
+  const countEl = document.getElementById('addEpisodesModalCount');
+  if (countEl) countEl.textContent = String(APP_STATE.addEpisodesDraftGuids.size);
+  if (!listEl) return;
+  const pl = storage.getState().playlists.find((p) => p.id === APP_STATE.pendingAddPlaylistId);
+  const existingSet = new Set(pl?.guids || []);
+  const q = (document.getElementById('addEpisodesSearchInput')?.value || '').trim().toLowerCase();
+  const show = document.getElementById('addEpisodesShowSelect')?.value || 'All';
+
+  const matches = APP_STATE.questions.filter((ep) => {
+    if (show !== 'All' && ep.show !== show) return false;
+    if (q) {
+      const hay = `${ep.title} ${ep.question} ${ep.category}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  listEl.innerHTML = matches
+    .slice(0, 100)
+    .map((ep) => {
+      const alreadyIn = existingSet.has(ep.guid);
+      const checked = alreadyIn || APP_STATE.addEpisodesDraftGuids.has(ep.guid);
+      return `<label class="picker-row">
+        <input type="checkbox" data-add-ep-guid="${escapeHtml(ep.guid)}" ${checked ? 'checked' : ''} ${alreadyIn ? 'disabled' : ''} />
+        <span class="picker-row-copy">
+          <strong>${escapeHtml(ep.title)}${alreadyIn ? ' ✓ (Already added)' : ''}</strong>
+          <span>${escapeHtml(ep.show)} · ${escapeHtml(ep.category)} · ${formatTime(ep.durationSec)}</span>
+        </span>
+      </label>`;
     })
     .join('');
+}
 
-  wirePlaylistDragDrop();
+function openAddEpisodesModal(playlistId) {
+  const pl = storage.getState().playlists.find((p) => p.id === playlistId);
+  const body = document.getElementById('addEpisodesModalBody');
+  if (!pl || !body) return;
+  APP_STATE.pendingAddPlaylistId = playlistId;
+  APP_STATE.addEpisodesDraftGuids = new Set();
+  body.innerHTML = `
+    <p>Adding to: <strong>${escapeHtml(pl.name)}</strong></p>
+    <div class="picker-toolbar">
+      <input id="addEpisodesSearchInput" type="search" class="text-input" placeholder="Search episodes..." />
+      <select id="addEpisodesShowSelect" class="select-input">
+        <option value="All">Both Shows</option>
+        <option value="Art Smart">Art Smart</option>
+        <option value="Who ARTed">Who ARTed</option>
+      </select>
+    </div>
+    <div id="addEpisodesModalList" class="individual-picker-list"></div>
+    <div class="modal-footer-actions" style="margin-top:12px;">
+      <button id="confirmAddEpisodesBtn" type="button" class="btn btn-coral">Add Selected (<span id="addEpisodesModalCount">0</span>)</button>
+      <button type="button" class="btn btn-outline" data-close-modal="addEpisodesModal">Cancel</button>
+    </div>
+  `;
+  renderAddEpisodesModalList();
+  openModal('addEpisodesModal');
 }
 
 function wirePlaylistDragDrop() {
@@ -743,12 +983,15 @@ function populateHostIndividualPicker() {
     return true;
   });
 
-  if (countEl) countEl.textContent = String(APP_STATE.hostConfig.pickedGuids.size);
+  const pickedSet = APP_STATE.hostConfig.pickedGuids;
+  matches.sort((a, b) => Number(pickedSet.has(b.guid)) - Number(pickedSet.has(a.guid)));
+
+  if (countEl) countEl.textContent = String(pickedSet.size);
 
   listEl.innerHTML = matches
-    .slice(0, 80)
+    .slice(0, Math.max(80, pickedSet.size + 20))
     .map((ep) => {
-      const checked = APP_STATE.hostConfig.pickedGuids.has(ep.guid) ? 'checked' : '';
+      const checked = pickedSet.has(ep.guid) ? 'checked' : '';
       return `<label class="picker-row">
         <input type="checkbox" data-picker-guid="${escapeHtml(ep.guid)}" ${checked} />
         <span class="picker-row-copy">
@@ -1567,9 +1810,14 @@ function bindAllEvents() {
     if (listenBtn) {
       const ep = APP_STATE.questionMap.get(listenBtn.dataset.libListen);
       if (ep) {
-        audioPlayer.loadAndCue(ep, ep.cueSeconds || 0, true);
-        storage.recordClipListened();
-        syncHeaderHud();
+        const snap = audioPlayer.getSnapshot();
+        if (snap.episode && snap.episode.guid === ep.guid && snap.isPlaying) {
+          audioPlayer.togglePlay();
+        } else {
+          audioPlayer.loadAndCue(ep, 0, true);
+          storage.recordClipListened();
+          syncHeaderHud();
+        }
       }
       return;
     }
@@ -1595,60 +1843,184 @@ function bindAllEvents() {
     }
   });
 
-  // Playlists & Starter Packs
+  // Playlists Builder, Checkboxes & Starter Packs
+  ['builderSearchInput', 'builderShowSelect', 'builderCategorySelect'].forEach((id) => {
+    document.getElementById(id)?.addEventListener(id === 'builderSearchInput' ? 'input' : 'change', renderPlaylistBuilderList);
+  });
+
+  document.getElementById('builderEpisodeList')?.addEventListener('change', (e) => {
+    const cb = e.target.closest('[data-builder-guid]');
+    if (!cb) return;
+    if (cb.checked) APP_STATE.builderDraftGuids.add(cb.dataset.builderGuid);
+    else APP_STATE.builderDraftGuids.delete(cb.dataset.builderGuid);
+    const cnt = document.getElementById('builderSelectedCount');
+    if (cnt) cnt.textContent = String(APP_STATE.builderDraftGuids.size);
+  });
+
+  document.getElementById('builderSelectVisibleBtn')?.addEventListener('click', () => {
+    getBuilderFilteredEpisodes().slice(0, 100).forEach((ep) => APP_STATE.builderDraftGuids.add(ep.guid));
+    renderPlaylistBuilderList();
+  });
+
+  document.getElementById('builderClearBtn')?.addEventListener('click', () => {
+    APP_STATE.builderDraftGuids.clear();
+    renderPlaylistBuilderList();
+  });
+
   document.getElementById('createPlaylistForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const input = document.getElementById('newPlaylistNameInput');
-    if (storage.createPlaylist(input.value)) {
+    const selected = Array.from(APP_STATE.builderDraftGuids);
+    const created = storage.createPlaylist(input.value, selected);
+    if (created) {
       input.value = '';
+      APP_STATE.builderDraftGuids.clear();
       renderPlaylistsTab();
-      showToast('Created new unit playlist!');
+      showToast(selected.length ? `Created "${created.name}" with ${selected.length} episodes!` : `Created playlist "${created.name}"!`);
     }
   });
 
+  document.getElementById('starterPacksGrid')?.addEventListener('change', (e) => {
+    const cb = e.target.closest('[data-pack-check]');
+    if (!cb) return;
+    storage.setPackGuidChecked(cb.dataset.packCheck, cb.dataset.packGuid, cb.checked);
+    renderPlaylistsTab();
+  });
+
   document.getElementById('starterPacksGrid')?.addEventListener('click', (e) => {
+    const toggleBtn = e.target.closest('[data-pack-toggle]');
+    if (toggleBtn) {
+      const pid = toggleBtn.dataset.packToggle;
+      if (APP_STATE.expandedPackIds.has(pid)) APP_STATE.expandedPackIds.delete(pid);
+      else APP_STATE.expandedPackIds.add(pid);
+      renderPlaylistsTab();
+      return;
+    }
+    const allBtn = e.target.closest('[data-pack-check-all]');
+    if (allBtn) {
+      const pack = UNIT_STARTER_PACKS.find((p) => p.id === allBtn.dataset.packCheckAll);
+      if (pack) {
+        storage.setAllPackGuidsChecked(pack.id, APP_STATE.questions.filter(pack.filter).map((ep) => ep.guid), true);
+        renderPlaylistsTab();
+      }
+      return;
+    }
+    const noneBtn = e.target.closest('[data-pack-check-none]');
+    if (noneBtn) {
+      const pack = UNIT_STARTER_PACKS.find((p) => p.id === noneBtn.dataset.packCheckNone);
+      if (pack) {
+        storage.setAllPackGuidsChecked(pack.id, APP_STATE.questions.filter(pack.filter).map((ep) => ep.guid), false);
+        renderPlaylistsTab();
+      }
+      return;
+    }
+    const trackListen = e.target.closest('[data-pack-track-listen]');
+    if (trackListen) {
+      const pack = UNIT_STARTER_PACKS.find((p) => p.id === trackListen.dataset.packTrackListen);
+      if (!pack) return;
+      const { allEps, checkedEps } = getPackEpisodes(pack);
+      const clickedEp = allEps.find((x) => x.guid === trackListen.dataset.trackGuid);
+      const queueList = checkedEps.some((x) => x.guid === clickedEp?.guid) ? checkedEps : (clickedEp ? [clickedEp] : []);
+      playCheckedEpisodeQueue(pack.title, queueList, clickedEp?.guid, () => getPackEpisodes(pack).checkedEps);
+      return;
+    }
+    const listenPackBtn = e.target.closest('[data-pack-listen]');
+    if (listenPackBtn) {
+      const pack = UNIT_STARTER_PACKS.find((p) => p.id === listenPackBtn.dataset.packListen);
+      if (!pack) return;
+      playCheckedEpisodeQueue(pack.title, getPackEpisodes(pack).checkedEps, null, () => getPackEpisodes(pack).checkedEps);
+      return;
+    }
     const soloBtn = e.target.closest('[data-pack-solo]');
     if (soloBtn) {
       const pack = UNIT_STARTER_PACKS.find((p) => p.id === soloBtn.dataset.packSolo);
       if (!pack) return;
-      APP_STATE.soloFilter.playlistTitle = pack.title;
-      APP_STATE.soloFilter.playlistGuids = APP_STATE.questions.filter(pack.filter).map((ep) => ep.guid);
-      rebuildSoloFilteredDeck({ resetIndex: true });
-      switchTab('solo');
+      launchSoloPlaylist(pack.title, getPackEpisodes(pack).checkedEps.map((ep) => ep.guid));
       return;
     }
     const hostBtn = e.target.closest('[data-pack-host]');
     if (hostBtn) {
-      const pack = UNIT_STARTER_PACKS.find((p) => p.id === hostBtn.dataset.packSolo || p.id === hostBtn.dataset.packHost);
+      const pack = UNIT_STARTER_PACKS.find((p) => p.id === hostBtn.dataset.packHost);
       if (!pack) return;
-      const guids = APP_STATE.questions.filter(pack.filter).slice(0, 30).map((ep) => ep.guid);
+      const guids = getPackEpisodes(pack).checkedEps.map((ep) => ep.guid);
+      if (!guids.length) return showToast('Select at least one episode checkbox first!');
       launchPlaylistIntoGroupSetup(pack.title, guids);
     }
   });
 
+  document.getElementById('customPlaylistsContainer')?.addEventListener('change', (e) => {
+    const cb = e.target.closest('[data-pl-check]');
+    if (!cb) return;
+    storage.setPlaylistGuidChecked(cb.dataset.plCheck, cb.dataset.trackGuid, cb.checked);
+    renderPlaylistsTab();
+  });
+
   document.getElementById('customPlaylistsContainer')?.addEventListener('click', (e) => {
+    const checkAll = e.target.closest('[data-pl-check-all]');
+    if (checkAll) {
+      storage.setAllPlaylistGuidsChecked(checkAll.dataset.plCheckAll, true);
+      renderPlaylistsTab();
+      return;
+    }
+    const checkNone = e.target.closest('[data-pl-check-none]');
+    if (checkNone) {
+      storage.setAllPlaylistGuidsChecked(checkNone.dataset.plCheckNone, false);
+      renderPlaylistsTab();
+      return;
+    }
+    const trackListen = e.target.closest('[data-pl-track-listen]');
+    if (trackListen) {
+      const plId = trackListen.dataset.plTrackListen;
+      const pl = storage.getState().playlists.find((p) => p.id === plId);
+      if (!pl) return;
+      const { checkedEps } = getPlaylistEpisodes(pl);
+      const clickedEp = APP_STATE.questionMap.get(trackListen.dataset.trackGuid);
+      const queueList = checkedEps.some((x) => x.guid === clickedEp?.guid) ? checkedEps : (clickedEp ? [clickedEp] : []);
+      playCheckedEpisodeQueue(pl.name, queueList, clickedEp?.guid, () => {
+        const latestPl = storage.getState().playlists.find((p) => p.id === plId);
+        return latestPl ? getPlaylistEpisodes(latestPl).checkedEps : [];
+      });
+      return;
+    }
+    const listenPlBtn = e.target.closest('[data-pl-listen]');
+    if (listenPlBtn) {
+      const plId = listenPlBtn.dataset.plListen;
+      const pl = storage.getState().playlists.find((p) => p.id === plId);
+      if (!pl) return;
+      playCheckedEpisodeQueue(pl.name, getPlaylistEpisodes(pl).checkedEps, null, () => {
+        const latestPl = storage.getState().playlists.find((p) => p.id === plId);
+        return latestPl ? getPlaylistEpisodes(latestPl).checkedEps : [];
+      });
+      return;
+    }
     const soloBtn = e.target.closest('[data-pl-solo]');
     if (soloBtn) {
       const pl = storage.getState().playlists.find((p) => p.id === soloBtn.dataset.plSolo);
       if (!pl || !pl.guids.length) return showToast('Add episodes to this playlist first.');
-      APP_STATE.soloFilter.playlistTitle = pl.name;
-      APP_STATE.soloFilter.playlistGuids = [...pl.guids];
-      rebuildSoloFilteredDeck({ resetIndex: true });
-      switchTab('solo');
+      launchSoloPlaylist(pl.name, storage.getCheckedPlaylistGuids(pl.id));
       return;
     }
     const hostBtn = e.target.closest('[data-pl-host]');
     if (hostBtn) {
       const pl = storage.getState().playlists.find((p) => p.id === hostBtn.dataset.plHost);
       if (!pl || !pl.guids.length) return showToast('Add episodes to this playlist first.');
-      launchPlaylistIntoGroupSetup(pl.name, pl.guids);
+      const checkedGuids = storage.getCheckedPlaylistGuids(pl.id);
+      if (!checkedGuids.length) return showToast('Select at least one episode checkbox first!');
+      launchPlaylistIntoGroupSetup(pl.name, checkedGuids);
+      return;
+    }
+    const addBtn = e.target.closest('[data-pl-add]');
+    if (addBtn) {
+      openAddEpisodesModal(addBtn.dataset.plAdd);
       return;
     }
     const shareBtn = e.target.closest('[data-pl-share]');
     if (shareBtn) {
       const pl = storage.getState().playlists.find((p) => p.id === shareBtn.dataset.plShare);
       if (!pl) return;
-      const encoded = encodeURIComponent(JSON.stringify({ n: pl.name, g: pl.guids }));
+      const checkedGuids = storage.getCheckedPlaylistGuids(pl.id);
+      if (!checkedGuids.length) return showToast('Check at least one episode to share this playlist.');
+      const encoded = encodeURIComponent(JSON.stringify({ n: pl.name, g: checkedGuids }));
       const url = `${window.location.origin}${window.location.pathname}?playlist=${encoded}`;
       navigator.clipboard?.writeText(url).catch(() => {});
       showToast('Shareable playlist link copied to clipboard!');
@@ -1664,6 +2036,35 @@ function bindAllEvents() {
     if (remTrack) {
       storage.removeFromPlaylist(remTrack.dataset.plRemTrack, remTrack.dataset.trackGuid);
       renderPlaylistsTab();
+    }
+  });
+
+  document.getElementById('addEpisodesModalBody')?.addEventListener('input', (e) => {
+    if (e.target.id === 'addEpisodesSearchInput') renderAddEpisodesModalList();
+  });
+
+  document.getElementById('addEpisodesModalBody')?.addEventListener('change', (e) => {
+    if (e.target.id === 'addEpisodesShowSelect') {
+      renderAddEpisodesModalList();
+      return;
+    }
+    const cb = e.target.closest('[data-add-ep-guid]');
+    if (!cb || cb.disabled) return;
+    if (cb.checked) APP_STATE.addEpisodesDraftGuids.add(cb.dataset.addEpGuid);
+    else APP_STATE.addEpisodesDraftGuids.delete(cb.dataset.addEpGuid);
+    const cnt = document.getElementById('addEpisodesModalCount');
+    if (cnt) cnt.textContent = String(APP_STATE.addEpisodesDraftGuids.size);
+  });
+
+  document.getElementById('addEpisodesModalBody')?.addEventListener('click', (e) => {
+    const confirmBtn = e.target.closest('#confirmAddEpisodesBtn');
+    if (confirmBtn && APP_STATE.pendingAddPlaylistId) {
+      const picks = Array.from(APP_STATE.addEpisodesDraftGuids);
+      if (!picks.length) return showToast('Select at least one new episode first.');
+      const added = storage.addManyToPlaylist(APP_STATE.pendingAddPlaylistId, picks);
+      closeModal('addEpisodesModal');
+      renderPlaylistsTab();
+      showToast(`Added ${added} episode${added === 1 ? '' : 's'} to playlist!`);
     }
   });
 

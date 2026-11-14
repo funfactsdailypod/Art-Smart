@@ -19,6 +19,7 @@ const DEFAULT_STATE = {
   answered: {},
   favorites: [],
   playlists: [],
+  packUnchecked: {},
   savedRooms: [],
   hostOverrides: {},
   unlockedBadges: [],
@@ -61,7 +62,14 @@ export class StorageManager {
         categoryCounts: { ...(parsed.categoryCounts || {}) },
         answered: { ...(parsed.answered || {}) },
         favorites: Array.isArray(parsed.favorites) ? parsed.favorites : [],
-        playlists: Array.isArray(parsed.playlists) ? parsed.playlists : [],
+        playlists: Array.isArray(parsed.playlists)
+          ? parsed.playlists.map((pl) => ({
+              ...pl,
+              guids: Array.isArray(pl.guids) ? pl.guids : [],
+              uncheckedGuids: Array.isArray(pl.uncheckedGuids) ? pl.uncheckedGuids : []
+            }))
+          : [],
+        packUnchecked: parsed.packUnchecked && typeof parsed.packUnchecked === 'object' ? { ...parsed.packUnchecked } : {},
         savedRooms: Array.isArray(parsed.savedRooms) ? parsed.savedRooms : [],
         hostOverrides: { ...(parsed.hostOverrides || {}) },
         unlockedBadges: Array.isArray(parsed.unlockedBadges) ? parsed.unlockedBadges : [],
@@ -194,6 +202,7 @@ export class StorageManager {
       id: `pl-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
       name: trimmed,
       guids: Array.from(new Set(initialGuids)),
+      uncheckedGuids: [],
       createdAt: new Date().toISOString()
     };
     this.state.playlists.unshift(pl);
@@ -211,15 +220,91 @@ export class StorageManager {
     if (!pl) return false;
     if (!pl.guids.includes(guid)) {
       pl.guids.push(guid);
-      this.save();
     }
+    if (Array.isArray(pl.uncheckedGuids)) {
+      pl.uncheckedGuids = pl.uncheckedGuids.filter((g) => g !== guid);
+    }
+    this.save();
     return true;
+  }
+
+  addManyToPlaylist(playlistId, guids = []) {
+    const pl = this.state.playlists.find((p) => p.id === playlistId);
+    if (!pl) return 0;
+    let added = 0;
+    pl.uncheckedGuids = Array.isArray(pl.uncheckedGuids) ? pl.uncheckedGuids : [];
+    for (const g of guids) {
+      if (!pl.guids.includes(g)) {
+        pl.guids.push(g);
+        added++;
+      }
+      pl.uncheckedGuids = pl.uncheckedGuids.filter((x) => x !== g);
+    }
+    this.save();
+    return added;
   }
 
   removeFromPlaylist(playlistId, guid) {
     const pl = this.state.playlists.find((p) => p.id === playlistId);
     if (!pl) return;
     pl.guids = pl.guids.filter((g) => g !== guid);
+    if (Array.isArray(pl.uncheckedGuids)) {
+      pl.uncheckedGuids = pl.uncheckedGuids.filter((g) => g !== guid);
+    }
+    this.save();
+  }
+
+  isPlaylistGuidChecked(playlistId, guid) {
+    const pl = this.state.playlists.find((p) => p.id === playlistId);
+    if (!pl) return true;
+    return !Array.isArray(pl.uncheckedGuids) || !pl.uncheckedGuids.includes(guid);
+  }
+
+  setPlaylistGuidChecked(playlistId, guid, checked) {
+    const pl = this.state.playlists.find((p) => p.id === playlistId);
+    if (!pl) return;
+    const set = new Set(Array.isArray(pl.uncheckedGuids) ? pl.uncheckedGuids : []);
+    if (checked) set.delete(guid);
+    else set.add(guid);
+    pl.uncheckedGuids = Array.from(set);
+    this.save();
+  }
+
+  setAllPlaylistGuidsChecked(playlistId, checked) {
+    const pl = this.state.playlists.find((p) => p.id === playlistId);
+    if (!pl) return;
+    pl.uncheckedGuids = checked ? [] : [...pl.guids];
+    this.save();
+  }
+
+  getCheckedPlaylistGuids(playlistId) {
+    const pl = this.state.playlists.find((p) => p.id === playlistId);
+    if (!pl) return [];
+    const unchecked = new Set(Array.isArray(pl.uncheckedGuids) ? pl.uncheckedGuids : []);
+    return pl.guids.filter((g) => !unchecked.has(g));
+  }
+
+  isPackGuidChecked(packId, guid) {
+    const arr = this.state.packUnchecked?.[packId];
+    return !Array.isArray(arr) || !arr.includes(guid);
+  }
+
+  setPackGuidChecked(packId, guid, checked) {
+    if (!this.state.packUnchecked || typeof this.state.packUnchecked !== 'object') {
+      this.state.packUnchecked = {};
+    }
+    const set = new Set(Array.isArray(this.state.packUnchecked[packId]) ? this.state.packUnchecked[packId] : []);
+    if (checked) set.delete(guid);
+    else set.add(guid);
+    this.state.packUnchecked[packId] = Array.from(set);
+    this.save();
+  }
+
+  setAllPackGuidsChecked(packId, allGuids, checked) {
+    if (!this.state.packUnchecked || typeof this.state.packUnchecked !== 'object') {
+      this.state.packUnchecked = {};
+    }
+    this.state.packUnchecked[packId] = checked ? [] : [...allGuids];
     this.save();
   }
 

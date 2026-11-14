@@ -48,9 +48,6 @@ body {
   font-family: var(--font-body);
   color: var(--ink);
   background-color: #f59342;
-  background-image: url('../images/memphis-wave-bg.jpg');
-  background-size: 460px auto;
-  background-repeat: repeat;
   min-height: 100vh;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -90,6 +87,19 @@ textarea {
   height: 100vh;
   pointer-events: none;
   z-index: 950;
+}
+
+/* Fixed 100% stretched wallpaper staying pinned behind floating cards & drifting shapes on scroll */
+.memphis-bg-wallpaper {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: #f59342;
+  background-image: url('../images/memphis-wave-bg.jpg');
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 /* Decorative Drifting Translucent Shapes Over Wallpaper */
@@ -200,8 +210,9 @@ textarea {
 .header-wave-accent {
   height: 10px;
   background-image: url('../images/memphis-wave-bg.jpg');
-  background-size: 360px auto;
+  background-size: 100% auto;
   background-position: center;
+  background-repeat: no-repeat;
   border-bottom: 2px solid var(--ink);
 }
 
@@ -1129,6 +1140,12 @@ textarea {
   box-shadow: var(--shadow-sm);
   padding: 15px;
   gap: 12px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.episode-tile.is-playing {
+  border-color: var(--mint-deep);
+  box-shadow: 5px 5px 0 var(--mint);
 }
 
 .episode-tile-top {
@@ -1184,7 +1201,7 @@ textarea {
 /* Playlists & Starter Packs */
 .starter-packs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
   gap: 14px;
   margin-top: 14px;
 }
@@ -1213,23 +1230,71 @@ textarea {
   color: var(--ink-soft);
 }
 
+.pack-episodes-drawer {
+  border-top: 2px dashed rgba(13, 21, 84, 0.25);
+  padding-top: 10px;
+  margin-top: 4px;
+}
+
+.pack-episodes-scroll {
+  max-height: 230px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
 .playlist-create-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
   gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .playlist-create-form {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .playlist-create-form .text-input {
   width: 260px;
+}
+
+.playlist-builder-box {
+  background: var(--cream);
+  border: 2px dashed var(--ink);
+  border-radius: 16px;
+  padding: 12px;
+}
+
+.builder-filter-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.builder-filter-row .text-input {
+  flex: 1.5;
+  min-width: 190px;
+}
+
+.builder-filter-row .select-input {
+  flex: 1;
+  min-width: 140px;
+}
+
+.builder-scroll-list {
+  max-height: 265px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .custom-playlist-card {
@@ -1249,6 +1314,24 @@ textarea {
   margin-bottom: 10px;
 }
 
+.playlist-bulk-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
+
+.playlist-bulk-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
 .playlist-tracks-list {
   display: flex;
   flex-direction: column;
@@ -1265,6 +1348,70 @@ textarea {
   border-radius: 10px;
   padding: 8px 12px;
   cursor: grab;
+  transition: opacity 0.14s ease, background-color 0.14s ease;
+}
+
+.playlist-track-item.is-skipped {
+  opacity: 0.56;
+  background: #F3EFE4;
+}
+
+.playlist-track-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.playlist-track-check {
+  width: 19px;
+  height: 19px;
+  accent-color: var(--coral);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.playlist-track-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.playlist-track-title {
+  font-weight: 800;
+  font-size: 0.92rem;
+  line-height: 1.25;
+}
+
+.playlist-track-item.is-skipped .playlist-track-title {
+  text-decoration: line-through;
+}
+
+.playlist-track-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.playlist-skipped-chip {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  background: #E2DCF5;
+  border: 1px solid var(--ink);
+}
+
+.playlist-track-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .playlist-track-item.is-dragging {

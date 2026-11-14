@@ -27,6 +27,9 @@
   <!-- Toast Notification (placed directly under body so z-index sits above sticky header) -->
   <div id="appToast" class="app-toast hidden" role="status" aria-live="polite"></div>
 
+  <!-- Fixed stretched background wallpaper so content and shapes float above on scroll -->
+  <div class="memphis-bg-wallpaper" aria-hidden="true"></div>
+
   <!-- Drifting translucent Memphis geometric shapes floating over the wallpaper -->
   <div class="memphis-backdrop" aria-hidden="true">
     <svg class="memphis-svg memphis-svg-tl" viewBox="0 0 220 220">
@@ -318,25 +321,46 @@
     <!-- ======================= TAB 3: PLAYLISTS ======================= -->
     <section id="tab-playlists" class="tab-panel" aria-labelledby="navTabPlaylists">
       <div class="memphis-card">
-        <span class="eyebrow-tag">Themed Packs &amp; Custom Decks</span>
-        <h2 class="section-heading">Starter Art Packs</h2>
-        <p class="section-sub">Launch a ready-made deck directly in Single Player or spin it into a live Group Game round.</p>
-        <div id="starterPacksGrid" class="starter-packs-grid"></div>
-      </div>
-
-      <div class="memphis-card">
         <div class="playlist-create-header">
           <div>
-            <span class="eyebrow-tag">Build &amp; Share Your Own</span>
-            <h2 class="section-heading">My Custom Playlists</h2>
+            <span class="eyebrow-tag">Build Episode Playlists</span>
+            <h2 class="section-heading">Episode Playlist Builder</h2>
+            <p class="section-sub">Select episodes below to build a custom playlist, or create a blank one and add episodes anytime.</p>
           </div>
           <form id="createPlaylistForm" class="playlist-create-form">
-            <input id="newPlaylistNameInput" type="text" class="text-input" maxlength="48" placeholder="New playlist (e.g. Bold Sculpture Picks)" required />
-            <button type="submit" class="btn btn-coral">+ Create Playlist</button>
+            <input id="newPlaylistNameInput" type="text" class="text-input" maxlength="48" placeholder="Playlist name (e.g. Color & Pop Art)" required />
+            <button type="submit" class="btn btn-coral">+ Create Playlist (<span id="builderSelectedCount">0</span>)</button>
+            <button id="builderClearBtn" type="button" class="btn btn-outline">Clear</button>
           </form>
         </div>
 
+        <div id="playlistBuilderBox" class="playlist-builder-box">
+          <div class="builder-filter-row">
+            <input id="builderSearchInput" type="search" class="text-input" placeholder="Search episodes by artist, concept, or title..." />
+            <select id="builderShowSelect" class="select-input">
+              <option value="All">Both Shows</option>
+              <option value="Art Smart">Art Smart</option>
+              <option value="Who ARTed">Who ARTed</option>
+            </select>
+            <select id="builderCategorySelect" class="select-input"></select>
+            <button id="builderSelectVisibleBtn" type="button" class="btn btn-sm btn-yellow">Check Visible</button>
+          </div>
+          <div id="builderEpisodeList" class="picker-list builder-scroll-list"></div>
+        </div>
+      </div>
+
+      <div class="memphis-card">
+        <span class="eyebrow-tag">Check Episodes to Play, Skip &amp; Quiz</span>
+        <h2 class="section-heading">My Custom Playlists</h2>
+        <p class="section-sub">Use the checkboxes inside any playlist to choose which episodes will play or be skipped—and which questions are included in Solo &amp; Group quizzes.</p>
         <div id="customPlaylistsContainer" class="custom-playlists-list"></div>
+      </div>
+
+      <div class="memphis-card">
+        <span class="eyebrow-tag">Themed Packs &amp; Episode Checklists</span>
+        <h2 class="section-heading">Starter Art Packs</h2>
+        <p class="section-sub">Listen straight through checked episodes or launch Solo and Group quizzes using only the episodes you keep checked.</p>
+        <div id="starterPacksGrid" class="starter-packs-grid"></div>
       </div>
     </section>
 
@@ -656,9 +680,11 @@
         </div>
       </div>
       <div class="audio-controls-center">
+        <button id="miniQueuePrevBtn" class="mini-ctrl-btn hidden" type="button" title="Previous episode">⏮</button>
         <button id="miniBackBtn" class="mini-ctrl-btn" type="button" title="Back 15s">-15s</button>
         <button id="miniPlayBtn" class="mini-play-btn" type="button" title="Play / Pause">▶</button>
         <button id="miniFwdBtn" class="mini-ctrl-btn" type="button" title="Forward 15s">+15s</button>
+        <button id="miniQueueNextBtn" class="mini-ctrl-btn hidden" type="button" title="Next episode">⏭</button>
         <button id="miniCueBtn" class="mini-cue-pill" type="button" title="Jump back to cued insight">Cue 1:30</button>
       </div>
       <div class="audio-time-right">
@@ -683,9 +709,11 @@
             <span id="drawerDurationTime">0:00</span>
           </div>
           <div class="drawer-actions-row">
+            <button id="drawerQueuePrevBtn" class="btn btn-sm btn-outline hidden" type="button">⏮ Prev</button>
             <button id="drawerBackBtn" class="btn btn-sm btn-outline" type="button">-15s</button>
             <button id="drawerPlayBtn" class="btn btn-sm btn-coral" type="button">▶ Play Clip</button>
             <button id="drawerFwdBtn" class="btn btn-sm btn-outline" type="button">+15s</button>
+            <button id="drawerQueueNextBtn" class="btn btn-sm btn-outline hidden" type="button">Next ⏭</button>
             <button id="drawerCueBtn" class="btn btn-sm btn-yellow" type="button">⚡ Jump to Cue</button>
             <button id="drawerRateBtn" class="btn btn-sm btn-outline" type="button">1x</button>
           </div>
@@ -700,10 +728,21 @@
   <div id="playlistPickerModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="playlistPickerTitle">
     <div class="memphis-card modal-card">
       <div class="modal-header">
-        <h3 id="playlistPickerTitle">Save to Unit Playlist</h3>
+        <h3 id="playlistPickerTitle">Save to Episode Playlist</h3>
         <button class="modal-close-btn" data-close-modal="playlistPickerModal" type="button">✕</button>
       </div>
       <div id="playlistPickerBody" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- 1b. Add Multiple Episodes to Existing Playlist Modal -->
+  <div id="addEpisodesModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="addEpisodesModalTitle">
+    <div class="memphis-card modal-card modal-card-lg">
+      <div class="modal-header">
+        <h3 id="addEpisodesModalTitle">➕ Add Episodes to Playlist</h3>
+        <button class="modal-close-btn" data-close-modal="addEpisodesModal" type="button">✕</button>
+      </div>
+      <div id="addEpisodesModalBody" class="modal-body"></div>
     </div>
   </div>
 

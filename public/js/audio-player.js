@@ -21,6 +21,10 @@ export class PodcastAudioController {
     this.rates = [1, 1.25, 1.5, 2];
     this.rateIndex = 0;
     this.listeners = new Set();
+    this.queue = [];
+    this.queueIndex = -1;
+    this.queueTitle = null;
+    this.queueResolver = null;
 
     this.els = {};
     this.bindAudioEvents();
@@ -49,7 +53,10 @@ export class PodcastAudioController {
       duration,
       cueSeconds: ep?.cueSeconds || 0,
       rate: this.rates[this.rateIndex],
-      hasError: Boolean(this.lastError)
+      hasError: Boolean(this.lastError),
+      queueLength: this.queue.length,
+      queueIndex: this.queueIndex,
+      queueTitle: this.queueTitle
     };
   }
 
@@ -63,6 +70,8 @@ export class PodcastAudioController {
       miniTitle: document.getElementById('miniPlayerTitle'),
       miniTime: document.getElementById('miniPlayerTime'),
       miniPlayBtn: document.getElementById('miniPlayBtn'),
+      miniQueuePrevBtn: document.getElementById('miniQueuePrevBtn'),
+      miniQueueNextBtn: document.getElementById('miniQueueNextBtn'),
       miniBackBtn: document.getElementById('miniBackBtn'),
       miniFwdBtn: document.getElementById('miniFwdBtn'),
       miniCueBtn: document.getElementById('miniCueBtn'),
@@ -70,6 +79,8 @@ export class PodcastAudioController {
       drawerShow: document.getElementById('drawerPlayerShow'),
       drawerTitle: document.getElementById('drawerPlayerTitle'),
       drawerPlayBtn: document.getElementById('drawerPlayBtn'),
+      drawerQueuePrevBtn: document.getElementById('drawerQueuePrevBtn'),
+      drawerQueueNextBtn: document.getElementById('drawerQueueNextBtn'),
       drawerBackBtn: document.getElementById('drawerBackBtn'),
       drawerFwdBtn: document.getElementById('drawerFwdBtn'),
       drawerCueBtn: document.getElementById('drawerCueBtn'),
@@ -83,6 +94,10 @@ export class PodcastAudioController {
 
     this.els.miniPlayBtn?.addEventListener('click', () => this.togglePlay());
     this.els.drawerPlayBtn?.addEventListener('click', () => this.togglePlay());
+    this.els.miniQueuePrevBtn?.addEventListener('click', () => this.stepQueue(-1));
+    this.els.miniQueueNextBtn?.addEventListener('click', () => this.stepQueue(1));
+    this.els.drawerQueuePrevBtn?.addEventListener('click', () => this.stepQueue(-1));
+    this.els.drawerQueueNextBtn?.addEventListener('click', () => this.stepQueue(1));
     this.els.miniBackBtn?.addEventListener('click', () => this.nudge(-15));
     this.els.drawerBackBtn?.addEventListener('click', () => this.nudge(-15));
     this.els.miniFwdBtn?.addEventListener('click', () => this.nudge(15));
@@ -133,25 +148,89 @@ export class PodcastAudioController {
       this.emit();
     });
     this.audio.addEventListener('ended', () => {
+      if (this.queue.length > 0 && this.stepQueue(1, { fromEnded: true })) {
+        return;
+      }
       this.syncDom();
       this.emit();
     });
     this.audio.addEventListener('error', () => {
-      this.lastError = 'Stream unavailable offline — use Apple or Spotify links.';
+      this.lastError = 'Stream unavailable offline — please check your internet connection.';
       this.syncDom();
       this.emit();
     });
   }
 
-  loadAndCue(episode, cueSeconds = episode.cueSeconds || 0, autoPlay = false) {
+  clearQueue() {
+    this.queue = [];
+    this.queueIndex = -1;
+    this.queueTitle = null;
+    this.queueResolver = null;
+  }
+
+  startPlaylistQueue(title, episodes = [], startIndex = 0, resolverFn = null) {
+    if (!Array.isArray(episodes) || !episodes.length) return false;
+    const clampedIdx = Math.max(0, Math.min(episodes.length - 1, startIndex));
+    this.queue = [...episodes];
+    this.queueIndex = clampedIdx;
+    this.queueTitle = title || 'Playlist';
+    this.queueResolver = typeof resolverFn === 'function' ? resolverFn : null;
+    this.loadAndCue(this.queue[this.queueIndex], 0, true, { keepQueue: true });
+    return true;
+  }
+
+  stepQueue(delta = 1, { fromEnded = false } = {}) {
+    if (typeof this.queueResolver === 'function') {
+      const latest = this.queueResolver();
+      if (Array.isArray(latest)) {
+        const curGuid = this.currentEpisode?.guid;
+        if (!latest.length) {
+          this.clearQueue();
+          return false;
+        }
+        if (curGuid && !latest.some((x) => x.guid === curGuid)) {
+          // Current track was unchecked while playing; step seamlessly into the next checked episode
+          const oldIdx = this.queue.findIndex((x) => x.guid === curGuid);
+          let fallbackIdx = 0;
+          if (oldIdx !== -1) {
+            const afterSet = new Set(this.queue.slice(oldIdx + 1).map((x) => x.guid));
+            const nextMatch = latest.findIndex((x) => afterSet.has(x.guid));
+            fallbackIdx = nextMatch !== -1 ? nextMatch : (delta > 0 ? 0 : latest.length - 1);
+          }
+          this.queue = latest;
+          this.queueIndex = fallbackIdx;
+          this.loadAndCue(this.queue[this.queueIndex], 0, true, { keepQueue: true });
+          return true;
+        }
+        this.queue = latest;
+        this.queueIndex = Math.max(0, latest.findIndex((x) => x.guid === curGuid));
+      }
+    }
+
+    if (!this.queue.length) return false;
+    const nextIdx = this.queueIndex + delta;
+    if (nextIdx < 0 || nextIdx >= this.queue.length) {
+      if (fromEnded) {
+        this.syncDom();
+        this.emit();
+      }
+      return false;
+    }
+    this.queueIndex = nextIdx;
+    this.loadAndCue(this.queue[this.queueIndex], 0, true, { keepQueue: true });
+    return true;
+  }
+
+  loadAndCue(episode, cueSeconds = episode.cueSeconds || 0, autoPlay = false, { keepQueue = false } = {}) {
     if (!episode || !episode.audioUrl) return;
+    if (!keepQueue) this.clearQueue();
     const isSame = this.currentEpisode && this.currentEpisode.guid === episode.guid;
     this.currentEpisode = episode;
     this.lastError = null;
     const targetSec = Math.max(0, Math.min((episode.durationSec || 600) - 5, Number(cueSeconds) || 0));
 
     if (!isSame || this.audio.src !== episode.audioUrl) {
-      this.pendingSeek = targetSec;
+      this.pendingSeek = targetSec > 0 ? targetSec : null;
       this.audio.src = episode.audioUrl;
       this.audio.playbackRate = this.rates[this.rateIndex];
       this.audio.load();
@@ -192,7 +271,7 @@ export class PodcastAudioController {
 
   jumpToCue(autoPlay = true) {
     if (!this.currentEpisode) return;
-    this.loadAndCue(this.currentEpisode, this.currentEpisode.cueSeconds || 0, autoPlay);
+    this.loadAndCue(this.currentEpisode, this.currentEpisode.cueSeconds || 0, autoPlay, { keepQueue: this.queue.length > 0 });
   }
 
   togglePlay() {
@@ -247,8 +326,18 @@ export class PodcastAudioController {
 
     if (this.els.miniArt) this.els.miniArt.src = ep.artworkUrl || showInfo.cover;
     if (this.els.drawerArt) this.els.drawerArt.src = ep.artworkUrl || showInfo.cover;
-    if (this.els.miniShow) this.els.miniShow.textContent = ep.show;
-    if (this.els.drawerShow) this.els.drawerShow.textContent = `${ep.show} • ${ep.category}`;
+    const hasQueue = this.queue.length > 1 && this.queueIndex >= 0;
+    const queueSuffix = hasQueue ? ` · Track ${this.queueIndex + 1}/${this.queue.length}` : '';
+    if (this.els.miniShow) this.els.miniShow.textContent = `${ep.show}${queueSuffix}`;
+    if (this.els.drawerShow) this.els.drawerShow.textContent = `${ep.show} • ${ep.category}${queueSuffix}`;
+    this.els.miniQueuePrevBtn?.classList.toggle('hidden', !hasQueue);
+    this.els.miniQueueNextBtn?.classList.toggle('hidden', !hasQueue);
+    this.els.drawerQueuePrevBtn?.classList.toggle('hidden', !hasQueue);
+    this.els.drawerQueueNextBtn?.classList.toggle('hidden', !hasQueue);
+    if (this.els.miniQueuePrevBtn) this.els.miniQueuePrevBtn.disabled = this.queueIndex <= 0;
+    if (this.els.miniQueueNextBtn) this.els.miniQueueNextBtn.disabled = this.queueIndex >= this.queue.length - 1;
+    if (this.els.drawerQueuePrevBtn) this.els.drawerQueuePrevBtn.disabled = this.queueIndex <= 0;
+    if (this.els.drawerQueueNextBtn) this.els.drawerQueueNextBtn.disabled = this.queueIndex >= this.queue.length - 1;
     if (this.els.miniTitle) this.els.miniTitle.textContent = ep.title;
     if (this.els.drawerTitle) this.els.drawerTitle.textContent = ep.title;
     if (this.els.miniTime) this.els.miniTime.textContent = `${formatTime(cur)} / ${formatTime(dur)}`;

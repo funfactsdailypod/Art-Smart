@@ -1,4 +1,4 @@
-const CACHE_NAME = 'art-smart-trivia-v3';
+const CACHE_NAME = 'art-smart-trivia-v4';
 const APP_SHELL = [
   './',
   './index.html',
