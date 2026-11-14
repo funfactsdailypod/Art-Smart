@@ -149,6 +149,29 @@
     "explanation": "Breaking stiff Royal Academy rules with theatrical yawning, laughing, and finger-pointing, Ducreux became history's accidental grandmaster of reaction memes ('Disregard females, acquire currency')!"
   },
   {
+    "guid": "922fb7d2-99e0-11f1-a722-3f29a94d56fb",
+    "show": "Who ARTed",
+    "title": "Fernand L\u00e9ger | Composition in Blue",
+    "pubDate": "Mon, 17 Aug 2026 07:10:00 -0000",
+    "durationSec": 671,
+    "artworkUrl": "https://megaphone.imgix.net/podcasts/922fb7d2-99e0-11f1-a722-3f29a94d56fb/image/4cb96c2d393c7904a8c2f3b8e241f0a6.png?ixlib=rails-4.3.1&max-w=600&max-h=600&fit=crop&auto=format,compress",
+    "audioUrl": "https://www.podtrac.com/pts/redirect.mp3/mgln.ai/e/211/tracking.swap.fm/track/YfZO4tERxneauNcW9Fgn/traffic.megaphone.fm/ARML1264958838.mp3",
+    "appleUrl": "https://podcasts.apple.com/us/podcast/fernand-l%C3%A9ger-composition-in-blue/id1485813093?i=1000783758098&uo=4",
+    "spotifyUrl": "https://open.spotify.com/episode/0fljqVUwKdrpvJmb9BvCZ7",
+    "category": "Historical & Cultural Connections",
+    "cueSeconds": 235,
+    "cueVerified": false,
+    "question": "Trained early on as an architectural draftsman, French modernist Fernand L\u00e9ger developed a cylindrical, machine-inspired branch of Cubism showcased in 'Composition in Blue' (1921\u20131927). What nickname did critics give this bold tubular style?",
+    "options": [
+      "Suprematism",
+      "Tubism",
+      "Orphism",
+      "Constructivism"
+    ],
+    "correctIndex": 1,
+    "explanation": "Critics dubbed L\u00e9ger's Cubist style 'Tubism' for its cylindrical, pipe-like volumes. In 'Composition in Blue'\u2014housed at the Art Institute of Chicago\u2014conservation scans even reveal a structured underlying grid uniting flat planes, balanced line weights, and industrial 3D forms inspired by his 1920s Mechanical Period."
+  },
+  {
     "guid": "85841b58-945f-11f1-9bf1-83fa852c40f3",
     "show": "Who ARTed",
     "title": "Stuart Davis | Swing Landscape",
@@ -2145,29 +2168,6 @@
     ],
     "correctIndex": 2,
     "explanation": "Chiseling top-down into towering desert cliffs after harvesting flash floods through clever rock-cut conduits and dams, the Nabataeans fused Egyptian, Assyrian, and Greek architecture in unforgettable 'Rose City' splendor!"
-  },
-  {
-    "guid": "75f4f398-9a4b-11ef-b714-3f6785155ee5",
-    "show": "Who ARTed",
-    "title": "Rosie the Riveter",
-    "pubDate": "Mon, 04 Nov 2024 08:10:00 -0000",
-    "durationSec": 748,
-    "artworkUrl": "https://megaphone.imgix.net/podcasts/75f4f398-9a4b-11ef-b714-3f6785155ee5/image/9930d5e0a64aa208b0885fee52c1820b.png?ixlib=rails-4.3.1&max-w=600&max-h=600&fit=crop&auto=format,compress",
-    "audioUrl": "https://www.podtrac.com/pts/redirect.mp3/mgln.ai/e/211/tracking.swap.fm/track/YfZO4tERxneauNcW9Fgn/traffic.megaphone.fm/ARML4662172739.mp3?updated=1730760381",
-    "appleUrl": "https://podcasts.apple.com/us/podcast/who-arted-weekly-art-history-for-all-ages/id1485813093",
-    "spotifyUrl": "https://open.spotify.com/show/1Sv71dnatL79dprwfX4Ypa",
-    "category": "Historical & Cultural Connections",
-    "cueSeconds": 277,
-    "cueVerified": false,
-    "question": "Surprise origin trivia! Today J. Howard Miller's yellow 'We Can Do It!' bandana-tying woman symbolizes 'Rosie the Riveter' \u2014 yet why did Miller actually design that poster back in 1943?",
-    "options": [
-      "For the U.S. Postal Service's 1944 Victory Garden stamp",
-      "As a cover for a Superman comic issue",
-      "As a temporary two-week internal Westinghouse Electric factory poster meant to discourage absenteeism and rally industrial workers before feminist rediscovery in the 1980s!",
-      "To advertise lemon hairspray in Hollywood theaters"
-    ],
-    "correctIndex": 2,
-    "explanation": "Meanwhile Norman Rockwell painted HIS muscular riveter holding a giant rivet gun + ham sandwich (stepping cleanly on 'Mein Kampf') right onto 'The Saturday Evening Post' cover in 1943 \u2014 before both icons fused into civic memory!"
   },
   {
     "guid": "3eb5e92c-927c-11ef-9dab-f7193dd0c5a2",
