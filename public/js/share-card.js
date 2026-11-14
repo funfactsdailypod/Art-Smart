@@ -1,6 +1,7 @@
 /**
  * Memphis-Styled PNG Scorecard Generator (Solo Mastery & Smartest Artists Podium)
  */
+import { BADGE_DEFS } from './config.js';
 
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
@@ -121,7 +122,7 @@ export function buildSoloScorecardDataUrl(state) {
 
   ctx.fillStyle = '#0D1554';
   ctx.font = '700 24px "Plus Jakarta Sans", system-ui, sans-serif';
-  ctx.fillText(`Badges Unlocked: ${state.unlockedBadges?.length || 0} / 10`, 130, 916);
+  ctx.fillText(`Badges Unlocked: ${state.unlockedBadges?.length || 0} / ${BADGE_DEFS.length}`, 130, 916);
 
   return canvas.toDataURL('image/png');
 }

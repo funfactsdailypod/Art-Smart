@@ -77,8 +77,6 @@ export class PodcastAudioController {
       drawerSeek: document.getElementById('drawerSeekRange'),
       drawerCurrent: document.getElementById('drawerCurrentTime'),
       drawerDuration: document.getElementById('drawerDurationTime'),
-      drawerSpotify: document.getElementById('drawerSpotifyLink'),
-      drawerApple: document.getElementById('drawerAppleLink'),
       drawerCloseBtn: document.getElementById('drawerCloseBtn'),
       toast: document.getElementById('playerToast')
     };
@@ -267,8 +265,6 @@ export class PodcastAudioController {
       this.els.drawerSeek.value = String(Math.round((cur / dur) * 1000));
     }
 
-    if (this.els.drawerSpotify) this.els.drawerSpotify.href = ep.spotifyUrl || showInfo.spotifyUrl;
-    if (this.els.drawerApple) this.els.drawerApple.href = ep.appleUrl || showInfo.appleUrl;
     if (this.els.toast) {
       this.els.toast.textContent = this.lastError || '';
       this.els.toast.classList.toggle('hidden', !this.lastError);

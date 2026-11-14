@@ -180,11 +180,18 @@ export const BADGE_DEFS = [
     check: (s) => (s.clipsListened || 0) >= 3
   },
   {
-    id: 'smartest-artist',
+    id: 'classroom-competitor',
     title: 'Classroom Competitor',
     icon: '🏆',
-    description: 'Join or host a Live Classroom Arena game.',
+    description: 'Join or host a Live Group Game.',
     check: (s) => (s.groupGamesPlayed || 0) >= 1
+  },
+  {
+    id: 'smartest-artist',
+    title: 'Smartest Artist',
+    icon: '👑',
+    description: 'Earn 25,000 points in Single Player trivia.',
+    check: (s) => (s.score || 0) >= 25000
   }
 ];
 

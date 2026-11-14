@@ -224,7 +224,7 @@ function syncHeaderHud() {
   const total = Math.max(1, APP_STATE.questions.length);
   const explored = st.answeredCount;
   if (masteryEl) {
-    masteryEl.textContent = `${explored} / ${APP_STATE.questions.length} explored • ${unlockedCount}/10 badges`;
+    masteryEl.textContent = `${explored} / ${APP_STATE.questions.length} explored • ${unlockedCount}/${BADGE_DEFS.length} badges`;
   }
   if (masteryBar) {
     masteryBar.style.width = `${Math.min(100, Math.round((explored / total) * 100))}%`;
@@ -407,15 +407,12 @@ function renderSoloRevealState(ep, answeredRec) {
   document.getElementById('soloExplanationText').textContent = ep.explanation;
 
   // Embedded Player setup for this episode
-  const showMeta = SHOW_META[ep.show] || SHOW_META['Who ARTed'];
   const cueStr = formatTime(ep.cueSeconds || 0);
   document.getElementById('embeddedEpisodeHeading').textContent = `${ep.show}: ${ep.title}`;
   document.getElementById('embeddedCueBadge').textContent = `Cued @ ${cueStr}`;
   document.getElementById('embeddedCueNote').textContent = ep.cueVerified
     ? `Audio-verified insight timestamp (${cueStr} inside ${formatTime(ep.durationSec)} episode).`
     : `Smart-cued to ${cueStr} inside this ${formatTime(ep.durationSec)} episode — scrub anytime or fine-tune in Studio Settings.`;
-  document.getElementById('embeddedSpotifyLink').href = ep.spotifyUrl || showMeta.spotifyUrl;
-  document.getElementById('embeddedAppleLink').href = ep.appleUrl || showMeta.appleUrl;
   syncEmbeddedPlayerControls(audioPlayer.getSnapshot());
 
   // Bonus Depth Question Opportunity (8% of episodes)
@@ -929,6 +926,34 @@ function leaveActiveRoom() {
   document.getElementById('groupSetupView')?.classList.remove('hidden');
   document.getElementById('navGroupLiveBadge')?.classList.add('hidden');
   renderSavedTeacherRooms();
+}
+
+function setQrStudentJoinMode(codeOrNull) {
+  const setupView = document.getElementById('groupSetupView');
+  const codeFieldGroup = document.getElementById('joinCodeFieldGroup');
+  const qrBanner = document.getElementById('qrJoinLockedBanner');
+  const defaultSub = document.getElementById('joinDefaultSub');
+  const codeInput = document.getElementById('joinCodeInput');
+  const lockedVal = document.getElementById('qrLockedCodeValue');
+
+  if (codeOrNull) {
+    const clean = sanitizeRoomCode(codeOrNull);
+    if (codeInput) {
+      codeInput.value = clean;
+      codeInput.required = false;
+    }
+    if (lockedVal) lockedVal.textContent = clean;
+    setupView?.classList.add('is-qr-join-only');
+    codeFieldGroup?.classList.add('hidden');
+    qrBanner?.classList.remove('hidden');
+    defaultSub?.classList.add('hidden');
+  } else {
+    if (codeInput) codeInput.required = true;
+    setupView?.classList.remove('is-qr-join-only');
+    codeFieldGroup?.classList.remove('hidden');
+    qrBanner?.classList.add('hidden');
+    defaultSub?.classList.remove('hidden');
+  }
 }
 
 function startRoomSyncLoops() {
@@ -1678,6 +1703,10 @@ function bindAllEvents() {
 
   document.getElementById('hostCreateForm')?.addEventListener('submit', handleCreateClassroomGame);
   document.getElementById('playerJoinForm')?.addEventListener('submit', handleJoinClassroomGame);
+  document.getElementById('qrSwitchToFullSetupBtn')?.addEventListener('click', () => {
+    setQrStudentJoinMode(null);
+    document.getElementById('joinCodeInput')?.focus();
+  });
 
   document.getElementById('joinAvatarGrid')?.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-avatar-id]');
@@ -1884,6 +1913,7 @@ function bindAllEvents() {
 }
 
 function launchPlaylistIntoGroupSetup(title, guids) {
+  setQrStudentJoinMode(null);
   switchTab('group');
   APP_STATE.hostConfig.questionMode = 'individual';
   APP_STATE.hostConfig.pickedGuids = new Set(guids);
@@ -1946,9 +1976,12 @@ async function initApp() {
   const plParam = params.get('playlist');
 
   if (joinParam) {
-    document.getElementById('joinCodeInput').value = sanitizeRoomCode(joinParam);
+    const cleanCode = sanitizeRoomCode(joinParam);
+    setQrStudentJoinMode(cleanCode);
     switchTab('group');
-    showToast(`Enter your name & pick an avatar to join room ${sanitizeRoomCode(joinParam)}!`);
+    const nameInput = document.getElementById('joinNameInput');
+    if (nameInput && !nameInput.value.trim()) nameInput.focus();
+    showToast(`Room ${cleanCode} ready — enter your name & pick an avatar!`);
   } else if (plParam) {
     try {
       const parsed = JSON.parse(decodeURIComponent(plParam));
