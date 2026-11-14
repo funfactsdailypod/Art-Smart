@@ -1,4 +1,4 @@
-const CACHE_NAME = 'art-smart-trivia-v4';
+const CACHE_NAME = 'art-smart-trivia-v5';
 const APP_SHELL = [
   './',
   './index.html',
@@ -14,8 +14,9 @@ const APP_SHELL = [
   './data/questions.json',
   './images/art-smart-cover.png',
   './images/who-arted-cover.png',
+  './images/fun-facts-daily-cover.jpg',
   './images/art-smart-badge.svg',
-  './images/memphis-wave-bg.jpg',
+  './images/memphis-wave-bg.jpg?v=5',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './manifest.webmanifest'
@@ -25,7 +26,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
       .open(CACHE_NAME)
-      .then((cache) => cache.addAll(APP_SHELL))
+      .then((cache) => Promise.all(APP_SHELL.map((u) => cache.add(new Request(u, { cache: 'no-cache' })))))
       .then(() => self.skipWaiting())
   );
 });

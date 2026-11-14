@@ -47,7 +47,7 @@ body {
   margin: 0;
   font-family: var(--font-body);
   color: var(--ink);
-  background-color: #f59342;
+  background-color: #19b5ae;
   min-height: 100vh;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -95,8 +95,8 @@ textarea {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-color: #f59342;
-  background-image: url('../images/memphis-wave-bg.jpg');
+  background-color: #19b5ae;
+  background-image: url('../images/memphis-wave-bg.jpg?v=5');
   background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;
@@ -209,7 +209,7 @@ textarea {
 
 .header-wave-accent {
   height: 10px;
-  background-image: url('../images/memphis-wave-bg.jpg');
+  background-image: url('../images/memphis-wave-bg.jpg?v=5');
   background-size: 100% auto;
   background-position: center;
   background-repeat: no-repeat;
@@ -449,7 +449,7 @@ textarea {
 .main-stage {
   position: relative;
   z-index: 2;
-  padding: 20px 0 46px;
+  padding: 20px 0 88px;
 }
 
 .tab-panel {
@@ -2352,6 +2352,81 @@ textarea {
   margin-bottom: 12px;
 }
 
+/* Fun Facts Daily Sister-Podcast Discovery Button */
+.ffd-promo-wrap {
+  margin-top: 8px;
+}
+
+.ffd-promo-btn {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: var(--radius);
+  border: var(--border);
+  background: linear-gradient(135deg, #FFF7B8 0%, #FFE234 100%);
+  box-shadow: var(--shadow);
+  text-decoration: none;
+  color: var(--ink);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.14s ease;
+}
+
+.ffd-promo-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0 var(--ink);
+  background: linear-gradient(135deg, #FFFDF0 0%, #FFE234 100%);
+}
+
+.ffd-promo-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.ffd-promo-logo {
+  width: 68px;
+  height: 68px;
+  border-radius: 14px;
+  border: var(--border);
+  box-shadow: var(--shadow-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+  transform: rotate(-3deg);
+}
+
+.ffd-promo-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.ffd-promo-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  line-height: 1.15;
+}
+
+.ffd-promo-sub {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.ffd-promo-cta {
+  padding: 10px 16px;
+  border-radius: 14px;
+  border: var(--border-thin);
+  background: #1DB954;
+  color: #FFFFFF;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.94rem;
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+}
+
 /* Responsive Breakpoints */
 @media (max-width: 900px) {
   .group-setup-grid {
@@ -2407,5 +2482,15 @@ textarea {
   .drawer-inner {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .ffd-promo-btn {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ffd-promo-cta {
+    width: 100%;
+    text-align: center;
   }
 }
