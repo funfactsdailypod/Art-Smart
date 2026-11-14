@@ -109,6 +109,8 @@ function parseFeedEpisodesXml(xml, feed, appleMaps = { byGuid: new Map(), byTitl
     const guid = extractTag(block, 'guid');
     const title = extractTag(block, 'title');
     if (!guid || !title) continue;
+    // Permanently exclude retired episodes (e.g., Rosie the Riveter)
+    if (guid === '75f4f398-9a4b-11ef-b714-3f6785155ee5' || /\brosie the riveter\b/i.test(title)) continue;
 
     if (/trailer|teaser|preview|bonus feed|announcement|\(encore\)|\bencore\b/i.test(title)) continue;
 
