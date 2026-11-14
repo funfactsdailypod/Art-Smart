@@ -47,12 +47,10 @@ body {
   margin: 0;
   font-family: var(--font-body);
   color: var(--ink);
-  background-color: var(--cream);
-  background-image:
-    radial-gradient(#0D1554 1.1px, transparent 1.1px),
-    radial-gradient(#FF6E73 1.2px, transparent 1.2px);
-  background-size: 32px 32px;
-  background-position: 0 0, 16px 16px;
+  background-color: #f59342;
+  background-image: url('../images/memphis-wave-bg.jpg');
+  background-size: 460px auto;
+  background-repeat: repeat;
   min-height: 100vh;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -94,35 +92,92 @@ textarea {
   z-index: 950;
 }
 
-/* Decorative Corner SVGs */
+/* Decorative Drifting Translucent Shapes Over Wallpaper */
 .memphis-backdrop {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 0;
+  z-index: 1;
   overflow: hidden;
 }
 
 .memphis-svg {
   position: absolute;
-  width: 190px;
-  height: 190px;
-  opacity: 0.28;
+  width: 210px;
+  height: 210px;
+  opacity: 0.78;
+  will-change: transform;
+  filter: drop-shadow(3px 3px 0 rgba(13, 21, 84, 0.25));
 }
 
 .memphis-svg-tl {
-  top: 120px;
-  left: -30px;
+  top: 112px;
+  left: -18px;
+  animation: memphisDriftA 24s ease-in-out infinite alternate;
 }
 
 .memphis-svg-tr {
-  top: 90px;
-  right: -24px;
+  top: 94px;
+  right: -18px;
+  animation: memphisDriftB 28s ease-in-out infinite alternate;
+}
+
+.memphis-svg-ml {
+  top: 46%;
+  left: -34px;
+  width: 165px;
+  height: 165px;
+  animation: memphisDriftC 32s ease-in-out infinite alternate;
+}
+
+.memphis-svg-mr {
+  top: 42%;
+  right: -28px;
+  width: 165px;
+  height: 165px;
+  animation: memphisDriftD 30s ease-in-out infinite alternate;
 }
 
 .memphis-svg-bl {
-  bottom: 40px;
-  left: -20px;
+  bottom: 24px;
+  left: -16px;
+  animation: memphisDriftB 26s ease-in-out infinite alternate-reverse;
+}
+
+.memphis-svg-br {
+  bottom: 22px;
+  right: -14px;
+  animation: memphisDriftA 29s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes memphisDriftA {
+  0% { transform: translate3d(0px, 0px, 0) rotate(0deg); }
+  50% { transform: translate3d(26px, -22px, 0) rotate(8deg); }
+  100% { transform: translate3d(-14px, 28px, 0) rotate(-6deg); }
+}
+
+@keyframes memphisDriftB {
+  0% { transform: translate3d(0px, 0px, 0) rotate(0deg); }
+  50% { transform: translate3d(-28px, 24px, 0) rotate(-9deg); }
+  100% { transform: translate3d(18px, -18px, 0) rotate(7deg); }
+}
+
+@keyframes memphisDriftC {
+  0% { transform: translate3d(0px, -18px, 0) rotate(-5deg); }
+  50% { transform: translate3d(30px, 16px, 0) rotate(7deg); }
+  100% { transform: translate3d(-10px, 34px, 0) rotate(-4deg); }
+}
+
+@keyframes memphisDriftD {
+  0% { transform: translate3d(0px, 14px, 0) rotate(4deg); }
+  50% { transform: translate3d(-26px, -24px, 0) rotate(-8deg); }
+  100% { transform: translate3d(12px, 22px, 0) rotate(6deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .memphis-svg {
+    animation: none !important;
+  }
 }
 
 /* Top Header & Wave Trim */
@@ -132,7 +187,7 @@ textarea {
   z-index: 80;
   background: var(--paper);
   border-bottom: var(--border);
-  box-shadow: 0 4px 0 rgba(13, 21, 84, 0.14);
+  box-shadow: 0 4px 0 rgba(13, 21, 84, 0.16);
 }
 
 .header-wave-accent {
@@ -145,10 +200,10 @@ textarea {
 
 .header-inner {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  padding: 12px 0;
+  padding: 12px 0 8px;
   flex-wrap: wrap;
 }
 
@@ -156,6 +211,7 @@ textarea {
   display: flex;
   align-items: center;
   gap: 14px;
+  padding-top: 2px;
 }
 
 .brand-covers {
@@ -208,70 +264,39 @@ textarea {
   letter-spacing: -0.02em;
 }
 
-.brand-pill {
-  background: var(--yellow);
-  border: var(--border-thin);
-  border-radius: 999px;
-  padding: 2px 10px;
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  box-shadow: 2px 2px 0 var(--ink);
-}
-
 .brand-sub {
-  margin: 2px 0 6px;
+  margin: 4px 0 0;
   font-size: 0.85rem;
   color: var(--ink-soft);
 }
 
-.podcast-links-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.podcast-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 2px 10px;
-  border-radius: 999px;
-  border: 1.5px solid var(--ink);
-  background: var(--cream);
-  font-size: 0.74rem;
-  font-weight: 700;
-  text-decoration: none;
-  color: var(--ink);
-  transition: transform 0.12s ease, background-color 0.12s ease;
-}
-
-.podcast-chip:hover {
-  transform: translateY(-1px);
-  background: var(--yellow);
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  border: 1.5px solid var(--ink);
-}
-
-.dot-pink {
-  background: var(--coral);
-}
-
-.dot-blue {
-  background: var(--sky);
-}
-
 .header-hud {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.header-hud-top {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.header-hud-secondary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.nav-tab-util {
+  padding: 5px 12px;
+  font-size: 0.84rem;
 }
 
 .hud-stat-pill {
@@ -1137,7 +1162,16 @@ textarea {
   justify-content: center;
   align-items: center;
   gap: 10px;
-  margin-top: 20px;
+  margin: 20px auto 0;
+  width: fit-content;
+}
+
+.pagination-row:not(:empty) {
+  background: var(--paper);
+  border: var(--border-thin);
+  border-radius: 999px;
+  padding: 8px 14px;
+  box-shadow: var(--shadow-sm);
 }
 
 /* Playlists & Starter Packs */
@@ -1237,6 +1271,51 @@ textarea {
   grid-template-columns: 1.35fr 1fr;
   gap: 20px;
   align-items: start;
+}
+
+.group-setup-grid.is-qr-join-only {
+  grid-template-columns: minmax(0, 540px);
+  justify-content: center;
+}
+
+.group-setup-grid.is-qr-join-only .group-host-card {
+  display: none;
+}
+
+.qr-join-locked-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: var(--cream);
+  border: var(--border-thin);
+  border-radius: 14px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.qr-locked-code-line {
+  margin: 2px 0 0;
+  font-size: 0.96rem;
+}
+
+.qr-locked-code-line strong {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  letter-spacing: 0.08em;
+}
+
+.link-reset-btn {
+  background: none;
+  border: none;
+  padding: 2px 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--violet);
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .card-ribbon {
@@ -2116,6 +2195,21 @@ textarea {
 }
 
 @media (max-width: 680px) {
+  .header-hud {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .header-hud-top,
+  .header-hud-secondary {
+    justify-content: space-between;
+  }
+
+  .memphis-svg {
+    width: 135px;
+    height: 135px;
+  }
+
   .options-grid,
   .bonus-options-grid,
   .live-options-grid,
