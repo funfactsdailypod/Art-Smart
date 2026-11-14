@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#FF6E73" />
-  <title>Art Smart — Podcast Art Trivia Studio</title>
+  <title>Art Smart Trivia Challenge — Art Smart &amp; Who ARTed</title>
   <meta
     name="description"
     content="Play 250 educator-curated art trivia questions from the Art Smart & Who ARTed podcasts, featuring cued episode audio clips, +100 bonus depth challenges, and live classroom group games."
@@ -24,21 +24,37 @@
   <!-- Decorative Memphis geometric stage confetti overlay -->
   <canvas id="confettiCanvas" class="confetti-canvas" aria-hidden="true"></canvas>
 
-  <!-- Subtle floating Memphis background shapes inspired by podcast cover art -->
+  <!-- Drifting translucent Memphis geometric shapes floating over the wallpaper -->
   <div class="memphis-backdrop" aria-hidden="true">
     <svg class="memphis-svg memphis-svg-tl" viewBox="0 0 220 220">
-      <path d="M12 42 Q40 12 68 42 T124 42 T180 42" fill="none" stroke="#FF6E73" stroke-width="10" stroke-linecap="round" />
-      <circle cx="48" cy="110" r="18" fill="#FFE234" stroke="#0D1554" stroke-width="5" />
-      <polygon points="150,80 185,135 115,135" fill="#53E2C5" stroke="#0D1554" stroke-width="5" stroke-linejoin="round" />
+      <path d="M12 42 Q40 12 68 42 T124 42 T180 42" fill="none" stroke="#FF6E73" stroke-opacity="0.88" stroke-width="11" stroke-linecap="round" />
+      <circle cx="48" cy="112" r="20" fill="#FFE234" fill-opacity="0.72" stroke="#0D1554" stroke-opacity="0.72" stroke-width="5" />
+      <polygon points="150,80 188,140 112,140" fill="#53E2C5" fill-opacity="0.72" stroke="#0D1554" stroke-opacity="0.72" stroke-width="5" stroke-linejoin="round" />
+      <rect x="86" y="158" width="38" height="14" rx="7" transform="rotate(-14 105 165)" fill="#FFFDF7" fill-opacity="0.76" stroke="#0D1554" stroke-opacity="0.68" stroke-width="4" />
     </svg>
     <svg class="memphis-svg memphis-svg-tr" viewBox="0 0 220 220">
-      <circle cx="150" cy="68" r="36" fill="none" stroke="#F59342" stroke-width="8" />
-      <circle cx="150" cy="68" r="20" fill="none" stroke="#0D1554" stroke-width="5" />
-      <path d="M24 148 Q58 118 92 148 T160 148" fill="none" stroke="#45C5EE" stroke-width="10" stroke-linecap="round" />
+      <circle cx="148" cy="68" r="38" fill="#FFFDF7" fill-opacity="0.34" stroke="#FFE234" stroke-opacity="0.9" stroke-width="9" />
+      <circle cx="148" cy="68" r="20" fill="#6261E8" fill-opacity="0.64" stroke="#0D1554" stroke-opacity="0.72" stroke-width="5" />
+      <path d="M24 148 Q58 118 92 148 T160 148" fill="none" stroke="#45C5EE" stroke-opacity="0.88" stroke-width="11" stroke-linecap="round" />
+      <polygon points="48,46 66,80 30,80" fill="#FF6E73" fill-opacity="0.74" stroke="#FFFDF7" stroke-opacity="0.78" stroke-width="4" stroke-linejoin="round" />
+    </svg>
+    <svg class="memphis-svg memphis-svg-ml" viewBox="0 0 180 180">
+      <circle cx="72" cy="60" r="26" fill="#45C5EE" fill-opacity="0.66" stroke="#FFFDF7" stroke-opacity="0.78" stroke-width="5" />
+      <path d="M26 128 L54 100 L82 128 L110 100 L138 128" fill="none" stroke="#FFE234" stroke-opacity="0.88" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    <svg class="memphis-svg memphis-svg-mr" viewBox="0 0 180 180">
+      <rect x="44" y="42" width="46" height="46" rx="12" transform="rotate(20 67 65)" fill="#F76E9A" fill-opacity="0.7" stroke="#0D1554" stroke-opacity="0.72" stroke-width="5" />
+      <circle cx="122" cy="126" r="18" fill="#53E2C5" fill-opacity="0.74" stroke="#0D1554" stroke-opacity="0.72" stroke-width="5" />
     </svg>
     <svg class="memphis-svg memphis-svg-bl" viewBox="0 0 220 220">
-      <rect x="30" y="96" width="44" height="44" rx="8" transform="rotate(-18 52 118)" fill="#6AC420" stroke="#0D1554" stroke-width="5" />
-      <circle cx="130" cy="150" r="14" fill="#6261E8" stroke="#0D1554" stroke-width="5" />
+      <rect x="30" y="96" width="48" height="48" rx="10" transform="rotate(-18 54 120)" fill="#6AC420" fill-opacity="0.72" stroke="#FFFDF7" stroke-opacity="0.82" stroke-width="5" />
+      <circle cx="136" cy="150" r="18" fill="#6261E8" fill-opacity="0.74" stroke="#FFFDF7" stroke-opacity="0.82" stroke-width="5" />
+      <path d="M88 44 Q112 22 136 44 T184 44" fill="none" stroke="#FFE234" stroke-opacity="0.88" stroke-width="9" stroke-linecap="round" />
+    </svg>
+    <svg class="memphis-svg memphis-svg-br" viewBox="0 0 220 220">
+      <polygon points="120,38 164,112 76,112" fill="#FFE234" fill-opacity="0.72" stroke="#0D1554" stroke-opacity="0.72" stroke-width="5" stroke-linejoin="round" />
+      <circle cx="62" cy="152" r="24" fill="#FF6E73" fill-opacity="0.7" stroke="#FFFDF7" stroke-opacity="0.82" stroke-width="5" />
+      <path d="M110 166 Q138 142 166 166 T204 166" fill="none" stroke="#53E2C5" stroke-opacity="0.88" stroke-width="9" stroke-linecap="round" />
     </svg>
   </div>
 
@@ -54,60 +70,52 @@
         <div class="brand-copy">
           <div class="brand-title-row">
             <img src="images/art-smart-badge.svg" alt="" class="brand-crest" />
-            <h1>Art Smart</h1>
-            <span class="brand-pill">250-Episode Studio</span>
+            <h1>Art Smart Trivia Challenge</h1>
           </div>
           <p class="brand-sub">Trivia &amp; Cued Listening from <strong>Art Smart</strong> &amp; <strong>Who ARTed</strong> by Kyle Wood</p>
-          <div class="podcast-links-row">
-            <a class="podcast-chip podcast-chip-spotify" href="https://open.spotify.com/show/1S9SbkmRXtChPHxmlKfeZb" target="_blank" rel="noopener">
-              <span class="dot dot-pink"></span> Art Smart · Spotify
-            </a>
-            <a class="podcast-chip podcast-chip-spotify" href="https://open.spotify.com/show/1Sv71dnatL79dprwfX4Ypa" target="_blank" rel="noopener">
-              <span class="dot dot-blue"></span> Who ARTed · Spotify
-            </a>
-            <a class="podcast-chip" href="https://podcasts.apple.com/us/podcast/art-smart/id1603422346" target="_blank" rel="noopener">
-              Apple Podcasts
-            </a>
-          </div>
         </div>
       </div>
 
       <div class="header-hud">
-        <div class="hud-stat-pill hud-score" title="Total Solo Trivia Points (+100 per question, +100 per bonus)">
-          <span class="hud-label">Score</span>
-          <strong id="hudScore">0</strong>
+        <div class="header-hud-top">
+          <div class="hud-stat-pill hud-score" title="Total Single Player Points (+100 per question, +100 per bonus)">
+            <span class="hud-label">Score</span>
+            <strong id="hudScore">0</strong>
+          </div>
+          <div class="hud-stat-pill hud-streak" title="Current Single Player Correct Streak">
+            <span class="hud-label">Streak</span>
+            <strong id="hudStreak">0 🔥</strong>
+          </div>
+          <div class="hud-actions">
+            <button id="soundToggleBtn" class="icon-btn" type="button" title="Toggle sound effects" aria-pressed="true">🔊</button>
+            <button id="openBadgesBtn" class="icon-btn" type="button" title="Art Badges & Progress">🏅</button>
+            <button id="openShareModalBtn" class="icon-btn" type="button" title="Download Scorecard">🖼️</button>
+            <button id="openSettingsBtn" class="icon-btn" type="button" title="Settings & Host Cue Studio">⚙️</button>
+          </div>
         </div>
-        <div class="hud-stat-pill hud-streak" title="Current Solo Correct Streak">
-          <span class="hud-label">Streak</span>
-          <strong id="hudStreak">0 🔥</strong>
-        </div>
-        <div class="hud-actions">
-          <button id="soundToggleBtn" class="icon-btn" type="button" title="Toggle sound effects" aria-pressed="true">🔊</button>
-          <button id="openBadgesBtn" class="icon-btn" type="button" title="Art Badges & Progress">🏅</button>
-          <button id="openShareModalBtn" class="icon-btn" type="button" title="Download Scorecard">🖼️</button>
-          <button id="openSettingsBtn" class="icon-btn" type="button" title="Settings & Host Cue Studio">⚙️</button>
+        <div class="header-hud-secondary" aria-label="Library and playlist tools">
+          <button class="nav-tab nav-tab-util" data-tab="episodes" id="navTabEpisodes" type="button">
+            <span class="nav-tab-icon">📚</span>
+            <span>Episode Library</span>
+            <span class="nav-badge" id="navLibraryCount">250</span>
+          </button>
+          <button class="nav-tab nav-tab-util" data-tab="playlists" id="navTabPlaylists" type="button">
+            <span class="nav-tab-icon">🗂️</span>
+            <span>Playlists</span>
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Primary 4-Mode Navigation Tabs -->
-    <nav class="shell main-nav" aria-label="Primary sections">
+    <!-- Primary Game Mode Tabs -->
+    <nav class="shell main-nav" aria-label="Game modes">
       <button class="nav-tab is-active" data-tab="solo" id="navTabSolo" type="button">
         <span class="nav-tab-icon">🎨</span>
-        <span>Solo Quiz</span>
-      </button>
-      <button class="nav-tab" data-tab="episodes" id="navTabEpisodes" type="button">
-        <span class="nav-tab-icon">📚</span>
-        <span>Episode Library</span>
-        <span class="nav-badge" id="navLibraryCount">250</span>
-      </button>
-      <button class="nav-tab" data-tab="playlists" id="navTabPlaylists" type="button">
-        <span class="nav-tab-icon">🗂️</span>
-        <span>Unit Playlists</span>
+        <span>Single Player</span>
       </button>
       <button class="nav-tab nav-tab-group" data-tab="group" id="navTabGroup" type="button">
         <span class="nav-tab-icon">🏟️</span>
-        <span>Classroom Arena</span>
+        <span>Group Game</span>
         <span class="nav-badge nav-badge-live hidden" id="navGroupLiveBadge">LIVE</span>
       </button>
     </nav>
@@ -225,8 +233,6 @@
                   <span id="embeddedDurTime">0:00</span>
                 </div>
               </div>
-              <a id="embeddedSpotifyLink" class="btn btn-sm btn-outline" href="#" target="_blank" rel="noopener">Spotify ↗</a>
-              <a id="embeddedAppleLink" class="btn btn-sm btn-outline" href="#" target="_blank" rel="noopener">Apple ↗</a>
             </div>
             <p id="embeddedCueNote" class="embedded-cue-note"></p>
           </div>
@@ -339,7 +345,7 @@
       <!-- Setup View: Host vs Join Split Cards -->
       <div id="groupSetupView" class="group-setup-grid">
         <!-- HOST A CLASSROOM GAME CARD -->
-        <article class="memphis-card group-host-card">
+        <article id="groupHostCard" class="memphis-card group-host-card">
           <div class="card-ribbon ribbon-violet">TEACHER / GAME LEADER</div>
           <h2 class="section-heading">Host a Classroom Game</h2>
           <p class="section-sub">
@@ -450,13 +456,21 @@
         </article>
 
         <!-- JOIN A CLASSROOM GAME CARD -->
-        <article class="memphis-card group-join-card">
+        <article id="groupJoinCard" class="memphis-card group-join-card">
           <div class="card-ribbon ribbon-teal">STUDENT / PLAYER</div>
           <h2 class="section-heading">Join a Classroom Game</h2>
-          <p class="section-sub">Enter the 6-digit or custom code from your teacher’s screen, type your name, and pick an artist avatar.</p>
+          <p id="joinDefaultSub" class="section-sub">Enter the 6-digit or custom code from your teacher’s screen, type your name, and pick an artist avatar.</p>
+
+          <div id="qrJoinLockedBanner" class="qr-join-locked-banner hidden">
+            <div>
+              <span class="eyebrow-tag">Game Code Ready</span>
+              <p class="qr-locked-code-line">Room Code: <strong id="qrLockedCodeValue">123456</strong></p>
+            </div>
+            <button id="qrSwitchToFullSetupBtn" type="button" class="link-reset-btn">Switch code / Host a game</button>
+          </div>
 
           <form id="playerJoinForm" class="join-form">
-            <div class="field-group">
+            <div id="joinCodeFieldGroup" class="field-group">
               <label for="joinCodeInput">Classroom Code</label>
               <input id="joinCodeInput" type="text" class="text-input code-input-big" maxlength="24" placeholder="123456" autocomplete="off" required />
             </div>
@@ -672,8 +686,6 @@
             <button id="drawerFwdBtn" class="btn btn-sm btn-outline" type="button">+15s</button>
             <button id="drawerCueBtn" class="btn btn-sm btn-yellow" type="button">⚡ Jump to Cue</button>
             <button id="drawerRateBtn" class="btn btn-sm btn-outline" type="button">1x</button>
-            <a id="drawerSpotifyLink" class="btn btn-sm btn-outline" href="#" target="_blank" rel="noopener">Spotify ↗</a>
-            <a id="drawerAppleLink" class="btn btn-sm btn-outline" href="#" target="_blank" rel="noopener">Apple ↗</a>
           </div>
           <p id="playerToast" class="player-error-msg hidden"></p>
         </div>
