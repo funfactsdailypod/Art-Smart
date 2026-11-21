@@ -153,9 +153,35 @@ export class ClassroomArenaClient {
     return Boolean(CLOUD_CONFIG.url && CLOUD_CONFIG.anonKey);
   }
 
+  pingKeepAlive() {
+    if (!this.hasSupabase() || typeof fetch !== 'function') return;
+    try {
+      const base = CLOUD_CONFIG.url.replace(/\/$/, '');
+      const headers = {
+        apikey: CLOUD_CONFIG.anonKey,
+        Authorization: `Bearer ${CLOUD_CONFIG.anonKey}`
+      };
+      // Lightweight SELECT ping on every site load to reset Supabase's 7-day inactivity timer
+      fetch(`${base}/rest/v1/art_smart_rooms?select=code&limit=1`, {
+        method: 'GET',
+        headers,
+        cache: 'no-store'
+      }).catch(() => {});
+      // Opportunistically clean up expired rooms in the background
+      fetch(`${base}/rest/v1/rpc/cleanup_expired_art_smart_rooms`, {
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: '{}'
+      }).catch(() => {});
+    } catch {
+      // Ignore background keep-alive errors
+    }
+  }
+
   async detectBackend() {
     if (this.hasSupabase()) {
       this.mode = 'supabase';
+      this.pingKeepAlive();
       return { mode: 'supabase', lanUrl: null };
     }
     try {
